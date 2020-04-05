@@ -1,0 +1,5 @@
+#Exclude the commit command
+commit.bat
+#Exclude the base template
+index.bk
+index-dev.html
