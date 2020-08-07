@@ -1,5 +1,7 @@
 #Exclude the commit command
 commit.bat
-#Exclude the base template
+#Exclude dev files
 index-bk.html
 index-dev.html
+
+contact_process.php
