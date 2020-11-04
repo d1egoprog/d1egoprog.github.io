@@ -3,5 +3,6 @@ commit.bat
 #Exclude dev files
 index-bk.html
 index-dev.html
+bigdata-icetex-old.html
 
 contact_process.php
