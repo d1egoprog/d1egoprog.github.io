@@ -1,0 +1,21 @@
+- Home (index.html)
+    - Last Modified: **30/01/2024**
+    - Priority: 1.0
+- Resume (resume.html)
+    - Last Modified: **30/01/2024**
+    - Priority: 0.8
+- Research (research.html)
+    - Last Modified: **30/01/2024**
+    - Priority: 0.7
+- Teaching (teaching.html)
+    - Last Modified: **30/01/2024**
+    - Priority: 0.7
+- Projects (projects.html)
+    - Last Modified: **30/01/2024**
+    - Priority: 0.6
+- Packages (packages.html)
+    - Last Modified: **30/01/2024**
+    - Priority: 0.6
+- Contact (contact.html)
+    - Last Modified: **30/01/2024**
+    - Priority: 0.5

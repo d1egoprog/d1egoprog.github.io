@@ -1,8 +1,6 @@
 #Exclude the commit command
-commit.bat
+*.bat
+#Folders Not used
+/backup/*
 #Exclude dev files
 index-bk.html
-index-dev.html
-bigdata-icetex-old.html
-
-contact_process.php

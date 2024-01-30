@@ -5,7 +5,7 @@
         display: block;
     }
     .about_person_area .person_details {
-        margin-left: 0px;
+        margin-left: 20px;
     }
     .social_icon li {
         margin-right: 4px;
@@ -31,19 +31,19 @@
     .blog_slider_area, .instagram_area {
         min-height: 516px;
     }
-    .footer_copyright .pull-right .navbar-nav li {
-        margin-right: 18px;
-    }
 }
-@media (max-width: 991px){
+@media (max-width: 992px){
     .header_area .navbar.navbar-default .navbar-collapse .nav.navbar-nav li {
-        margin-right: 18px;
+        margin-right: 10px;
+    }
+    .header_area .navbar.navbar-default .navbar-collapse .nav.navbar-nav li:last-child {
+        margin-right: 5px;
     }
     .about_person_area .person_img {
         text-align: center;
     }
     .about_person_area .person_details {
-        margin-top: 30px;
+        margin-top: 20px;
     }
     .myskill_area .col-md-6:last-child{
         margin-top: 40px;
@@ -87,35 +87,35 @@
         float: none;
         display: inline-block;
     }
-    .footer_copyright .pull-right .navbar-nav li a {
-        line-height: 45px;
-    }
-    .footer_copyright .pull-left h5 {
-        line-height: 45px;
-    }
 }
 @media (max-width: 767px){
     .navbar-toggle {
-        margin-top: 23px;
-        margin-bottom: 23px;
-        border: 1px solid #333333 !important;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        margin: 5px 5px 5px 5px;
+        border: 1px solid #000000 !important;
+        padding: 5px 10px;
     }
     .navbar-toggle:hover {
         background: transparent !important;
     }
     .navbar-toggle span{
-        background: #333333 !important;
+        background: #000000 !important;
+    }
+    .navbar-default .navbar-toggle {
+        border: 1px solid #000000 !important;
+    }
+    .navbar-default .navbar-collapse{
+        border-style: hidden;
     }
     .header_area .navbar.navbar-default .navbar-header .navbar-brand {
-        line-height: 78px;
+        line-height: 40px;
     }
     .header_area .navbar.navbar-default .navbar-collapse .nav.navbar-nav li a {
         display: block;
-        line-height: 45px;
+        line-height: 35px;
         border-bottom: 1px solid rgba(0, 0, 0, .2);
-    }
-    .header_area .navbar.navbar-default .navbar-collapse .nav.navbar-nav li:last-child a {
-        border: none;
+        text-align: center;
     }
     .person_details .social_icon li {
         margin-bottom: 8px;
@@ -123,6 +123,9 @@
     .person_details .social_icon {
         margin-bottom: -8px;
     }
+    .resume_area .resume_section{
+        display: block;
+      } 
     .education_area .education_inner_area .education_item::after {
         right: -23px;
         width: 122%;
@@ -194,6 +197,9 @@
         padding-left: 15px;
         padding-right: 15px;
     }
+    .resume_area .item ul + ul {
+        padding-left: 60px;
+    }
     .about_person_area .person_details .person_information ul + ul {
         padding-left: 6px;
     }
@@ -209,9 +215,9 @@
         transform: translateX(-50%);
     }
     .footer_inner .social_icon li{
-        margin-bottom: 6px;
+        margin-bottom: 5px;
     }
     .footer_copyright .pull-left h5 {
-        font-size: 12px;
+        font-size: 10px;
     }
 }
