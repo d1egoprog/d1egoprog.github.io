@@ -3,4 +3,5 @@
 #Folders Not used
 /backup/*
 #Exclude dev files
-index-bk.html
+*-bk.html
+teaching.html

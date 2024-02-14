@@ -60,6 +60,7 @@ body {
   line-height: 24px;
   font-size: 15px;
   color: #333333;
+  background: #333333;
   font-family: "Raleway", sans-serif;
 }
 
@@ -287,6 +288,7 @@ body, p, h1, h2, h3, h4, h5, h6 {
 
 .index_area {
   padding-top: 30px;
+  background: #efefef;
 }
 
 .index_area p{
@@ -349,7 +351,15 @@ body, p, h1, h2, h3, h4, h5, h6 {
 /* Research area css
 ============================================================================================ */
 
-.research_area p{
+.research_area{
+  background: #efefef;
+}
+
+.research_section{
+  padding: 5px 15px 5px 15px;
+}
+
+.research_section p{
   font-size: 15px;
   color: #666666;
   line-height: 20px;
@@ -361,8 +371,58 @@ body, p, h1, h2, h3, h4, h5, h6 {
 ============================================================================================ */
 /*---------------------------------------------------- */
 /*----------------------------------------------------*/
+/* Teaching area css
+============================================================================================ */
+.teaching_area {
+  padding-top: 30px;
+  background: #efefef;
+}
+
+.teaching_area .col-md-1 p{
+  background-color: #e1dedeec;
+}
+
+.teaching_area p{
+  font-size: 15px;
+  color: #666666;
+  line-height: 20px;
+  padding-bottom: 15px;
+  text-align: justify;
+}
+
+.teaching_area .container{
+  justify-content: center;
+  padding-bottom: 30px;
+}
+
+.teaching_area table{
+  border-bottom: 3px solid;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.teaching_area  th{
+  text-align: center;
+  border-top: 3px solid;
+  border-bottom: 3px solid;
+}
+
+.teaching_area  th, td{
+  padding: 5px 15px 5px 15px;
+}
+
+
+/* End Teaching Menu Area css
+/*============================================================================================ */
+/*---------------------------------------------------- */
+/*----------------------------------------------------*/
 /* Resume area css
 ============================================================================================ */
+
+.resume_area{
+  background: #efefef;
+}
+
 
 .resume_area p{
   font-size: 15px;
@@ -449,7 +509,7 @@ body, p, h1, h2, h3, h4, h5, h6 {
 /* About Person area css
 ============================================================================================ */
 .about_person_area {
-  background: #fff;
+  background: #ffffff;
   padding-top: 30px;
   padding-bottom: 20px;
 }
@@ -904,6 +964,10 @@ body, p, h1, h2, h3, h4, h5, h6 {
 /*----------------------------------------------------*/
 /* Portfolio css
 ============================================================================================ */
+.portfolio_area {
+  background: #efefef;
+}
+
 .portfolio_area .porfolio_menu {
   text-align: center;
 }
