@@ -519,7 +519,9 @@ body, p, h1, h2, h3, h4, h5, h6 {
 }
 
 .about_person_area .person_img img {
-  max-width: 100%;
+  border-radius: 50%;
+  display: flex;
+  max-width: 80%;
 }
 
 .about_person_area .person_img .download_btn {

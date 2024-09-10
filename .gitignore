@@ -1,7 +1,9 @@
 #Exclude the commit command
+*.cmd
 *.bat
 #Folders Not used
 /backup/*
 #Exclude dev files
 *-bk.html
 teaching.html
+projects.html

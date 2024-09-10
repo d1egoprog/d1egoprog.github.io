@@ -2,7 +2,8 @@
     .about_person_area .person_img {
         max-width: none;
         width: 100%;
-        display: block;
+        display: flex;
+        justify-content: center
     }
     .about_person_area .person_details {
         margin-left: 20px;
