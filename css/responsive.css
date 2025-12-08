@@ -49,6 +49,20 @@
     .myskill_area .col-md-6:last-child{
         margin-top: 40px;
     }
+    .research_links_list{
+        display: flex;
+        align-items: center;
+    }
+    .research_section{
+        padding-top: 10px;
+    }
+    .research_item_type{
+        border-top: #5b5b5b4a 1px dotted;
+        padding-top: 5px;
+    }
+    .research_links_list li{
+        width: 33%;
+    }
     .education_area .education_inner_area .education_item {
         margin-bottom: 236px;
     }
@@ -130,6 +144,10 @@
     .education_area .education_inner_area .education_item::after {
         right: -23px;
         width: 122%;
+    }
+    .supervising-table th, .supervising-table td {
+        font-size: 0.95em;
+        padding: 3px 3px;
     }
     .education_area .education_inner_area .education_item:nth-child(2) {
         margin-top: 275px;

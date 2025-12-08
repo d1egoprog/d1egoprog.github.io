@@ -61,7 +61,7 @@ body {
   font-size: 15px;
   color: #333333;
   background: #333333;
-  font-family: "Raleway", sans-serif;
+  font-family: 'Century Gothic', sans-serif;
 }
 
 body.dark_bg {
@@ -103,11 +103,11 @@ body, p, h1, h2, h3, h4, h5, h6 {
 
 .main_title h2 {
   font-size: 25px;
-  font-family: "Bree Serif", serif;
+  font-family: "Raleway", sans-serif;
   color: #222222;
   text-transform: uppercase;
   text-align: center;
-  border: 1px solid #222222;
+  border-bottom: 1px solid #222222;
   display: inline-block;
   line-height: 50px;
   padding: 0px 15px;
@@ -365,6 +365,14 @@ body, p, h1, h2, h3, h4, h5, h6 {
 
 .research_area{
   background: #efefef;
+  color: #666666  ;
+  font-size: 15px;
+}
+
+.research_area h3{
+  text-align: center;
+  padding-top: 5px;
+  border-bottom: #333333 1px solid;
 }
 
 .research_section{
@@ -372,12 +380,48 @@ body, p, h1, h2, h3, h4, h5, h6 {
 }
 
 .research_section p{
-  font-size: 15px;
-  color: #666666;
-  line-height: 20px;
-  padding-bottom: 15px;
+  padding-bottom: 5px;
   text-align: justify;
 }
+
+.research_item_type{
+  text-align: center;
+  font-size: 25px;
+  vertical-align: middle;
+}
+
+.research_item_info{
+  text-align: justify;
+  line-height: 23px;
+}
+
+.research_item_links{
+  text-align: center;
+  padding: 0px 0px 0px 0px;
+}
+/*
+border: 1px solid #ff02cc;
+border: 1px solid #010101;
+border: 1px solid #39ce59;
+border: 1px solid #ce3939;
+border: 1px solid #ff02cc;
+*/
+
+.research_links_list li a {
+  color: #333333;
+  font-weight: bold;
+}
+
+.research_links_list li:hover {
+  background: #7d9fd3;
+  transition: background 0.5s;
+}
+
+.research_links_list li:hover a {
+  color: #fff;
+}
+/*++++++++++++++++++++++++++++++++++++++++*/
+
 
 /* End Research Menu Area css
 ============================================================================================ */
@@ -423,18 +467,82 @@ body, p, h1, h2, h3, h4, h5, h6 {
   padding: 5px 15px 5px 15px;
 }
 
-
 /* End Teaching Menu Area css
 /*============================================================================================ */
+/* Supervising area css
+============================================================================================ */
+
+.supervising_area{
+}
+
+.supervising_area h3{
+  padding-top: 5px;
+  width: 80%;
+  margin: 30px auto;
+  text-align: center;
+  border-bottom: #333333 1px dotted;
+}
+
+.supervising-table {
+  width: 80%;
+  margin: 30px auto;
+  border-collapse: collapse;
+  border-radius: 5px;
+  overflow: hidden;
+  box-shadow: 0 10px 80px rgba(0,0,0,0.08);
+}
+
+.supervising-table th, .supervising-table td {
+  padding: 5px 5px;
+  text-align: left;
+  border-bottom: 1px solid #eaeaea;
+  font-size: 1em;
+}
+.supervising-table th {
+  background: #7d9fd3;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+}
+.supervising-table tr:last-child td {
+    border-bottom: none;
+}
+.supervising-table td.student {
+  padding-left: 5px;
+  text-align: left;
+}
+.supervising-table td.university {
+    font-style: italic;
+    color: #333;
+    text-align: center;
+}
+.supervising-table td.year {
+    font-weight: bold;
+    color: #222;
+    text-align: center;
+}
+.supervising-table td.topic {
+    color: #333;
+    text-align: justify;
+}
+.supervising-table td.document {
+    text-align: center;
+    font-size: 20px;
+}
+.supervising-table td.document:hover {
+  background: #5a7bb8;
+  color: #eaf2fb;
+}
+
+/* End Supervising Menu Area css
+/*============================================================================================ */
 /*---------------------------------------------------- */
-/*----------------------------------------------------*/
 /* Resume area css
 ============================================================================================ */
 
 .resume_area{
   background: #efefef;
 }
-
 
 .resume_area p{
   font-size: 15px;
@@ -672,7 +780,7 @@ body, p, h1, h2, h3, h4, h5, h6 {
   color: #222222;
   top: -100%;
   left: 0px;
-  font-family: FontAwesome;
+  font-family: 'Century Gothic', sans-serif;
   transition: all 200ms ease-in;
 }
 
@@ -723,7 +831,7 @@ body, p, h1, h2, h3, h4, h5, h6 {
   color: #fff;
   top: -100%;
   left: 0px;
-  font-family: FontAwesome;
+  font-family:  'Century Gothic', sans-serif;
   transition: all 200ms ease-in;
 }
 

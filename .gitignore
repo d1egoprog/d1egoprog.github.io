@@ -1,10 +1,9 @@
-#Exclude the commit command
 *.cmd
 *.bat
-#Folders Not used
 /backup/*
-#Exclude dev files
+/.vscode/*
 *-bk.html
 teaching.html
+supervising.html
 projects.html
 ArtifactesTODO.txt
