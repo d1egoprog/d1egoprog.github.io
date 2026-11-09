@@ -1,35 +1,205 @@
 ---
 import { getCollection } from "astro:content";
-import { getEntry, render } from "astro:content";
-
-import Education from "../components/resume/Education.astro";
-import Research from "../components/resume/Research.astro";
-import Industry from "../components/resume/Industry.astro";
 import MainLayout from "../layouts/MainLayout.astro";
+import { sitePath } from "../lib/urls";
 
+const [research, industry, education] = await Promise.all([
+    getCollection("research"),
+    getCollection("industry"),
+    getCollection("education"),
+]);
+
+type Duration = { start: { year: number; month: number }; end: { year: number; month: number } };
+type Entry = {
+    id: string;
+    period: string;
+    title: string;
+    organization: string;
+    organizationURL?: string;
+    department?: string;
+    departmentURL?: string;
+    location: string;
+    current?: boolean;
+    description?: string;
+    project?: string;
+};
+
+const validURL = (url?: string) => url && /^https?:\/\//.test(url) ? url : undefined;
+const period = ({ start, end }: Duration) => !end.year
+    ? `${start.year} – present`
+    : start.year === end.year ? String(start.year) : `${start.year} – ${end.year}`;
+const recentFirst = (a: { data: { duration: Duration } }, b: { data: { duration: Duration } }) =>
+    Number(!b.data.duration.end.year) - Number(!a.data.duration.end.year)
+    || b.data.duration.start.year - a.data.duration.start.year
+    || b.data.duration.start.month - a.data.duration.start.month;
+
+const researchEntries: Entry[] = research.sort(recentFirst).map(({ id, data, body }) => ({
+    id,
+    period: period(data.duration),
+    title: data.title,
+    organization: data.organization.name,
+    organizationURL: validURL(data.organization.url),
+    department: data.organization.faculty.department.name,
+    departmentURL: validURL(data.organization.faculty.department.url),
+    location: `${data.location.city}, ${data.location.country}`,
+    current: !data.duration.end.year,
+    description: id === "trinity" ? body?.trim() : undefined,
+}));
+const industryEntries: Entry[] = industry.sort(recentFirst).map(({ id, data, body }) => ({
+    id,
+    period: period(data.duration),
+    title: data.title,
+    organization: data.organization.name,
+    organizationURL: validURL(data.organization.url),
+    department: data.organization.type,
+    location: `${data.location.city}, ${data.location.country}`,
+    current: !data.duration.end.year,
+    description: id === "caoba" ? body?.trim() : undefined,
+}));
+const educationEntries: Entry[] = education
+    .sort((a, b) => b.data.dates.completed.localeCompare(a.data.dates.completed))
+    .map(({ id, data }) => ({
+        id,
+        period: data.dates.completed.slice(0, 4),
+        title: data.title,
+        organization: data.institution.name,
+        organizationURL: validURL(data.institution.url),
+        department: data.department?.name,
+        departmentURL: validURL(data.department?.url),
+        location: `${data.location.city}, ${data.location.country}`,
+        project: data.research?.title ?? data.thesis?.title ?? data.degreeProject?.title,
+    }));
+const sections: { id: string; title: string; icon: string; entries: Entry[] }[] = [
+    { id: "academic-experience", title: "Research & academic experience", icon: "fa-flask", entries: researchEntries },
+    { id: "industry-experience", title: "Industry experience", icon: "fa-industry", entries: industryEntries },
+    { id: "education", title: "Education", icon: "fa-graduation-cap", entries: educationEntries },
+];
 ---
+
 <MainLayout
     title="Resume"
-    description="Education, research experience, and industry experience of Diego Rincon-Yanez, a computer science researcher."
+    description="Research and academic experience, industry experience, and education of Diego Rincon-Yanez."
     pageType="ProfilePage"
 >
+    <div class="resume-page">
+        <div class="container">
+            <header class="resume-intro">
+                <div class="main_title">
+                    <h1>Resume</h1>
+                </div>
+                <nav class="porfolio_menu section-links" aria-label="Resume sections">
+                    <ul class="causes_filter">
+                        <li class="active"><a href="#academic-experience" aria-current="location">Research &amp; academia <span>{research.length}</span></a></li>
+                        <li><a href="#industry-experience">Industry <span>{industry.length}</span></a></li>
+                        <li><a href="#education">Education <span>{education.length}</span></a></li>
+                    </ul>
+                </nav>
+            </header>
 
-<section class="container resume_area" id="resume">   
-    <div class="main_title"><h2>Resume</h2></div>
-
-    <div class="resume_section">                   
-        <Education />
+            <div class="resume-sections">
+                {sections.map((section, index) => (
+                    <section class="career-section" id={section.id} aria-labelledby={`${section.id}-title`}>
+                        <header class="career-section-heading">
+                            <span class="section-number" aria-hidden="true">0{index + 1}</span>
+                            <h2 id={`${section.id}-title`}><i class={`fa-solid ${section.icon}`} aria-hidden="true"></i>{section.title}</h2>
+                        </header>
+                        <ol class="career-list">
+                            {section.entries.map((entry) => (
+                                <li class:list={["career-entry", { "current-role": entry.current }]}>
+                                    <div class="entry-period">
+                                        {entry.current && <span class="current-label">Current role</span>}
+                                        <span>{entry.period}</span>
+                                    </div>
+                                    <article class="entry-content" aria-labelledby={`${section.id}-${entry.id}`}>
+                                        <div class="entry-heading">
+                                        <h3 id={`${section.id}-${entry.id}`}>{entry.title}</h3>
+                                        <p class="entry-organization">
+                                            {entry.organizationURL ? <a href={entry.organizationURL} target="_blank" rel="noopener noreferrer">{entry.organization}</a> : entry.organization}
+                                        </p>
+                                        </div>
+                                        <p class="entry-meta">
+                                        {entry.department && <><span class="entry-department">
+                                            {entry.departmentURL ? <a href={entry.departmentURL} target="_blank" rel="noopener noreferrer">{entry.department}</a> : entry.department}
+                                        </span><span class="meta-separator" aria-hidden="true"> · </span></>}
+                                        <span class="entry-location">{entry.location}</span>
+                                        </p>
+                                        {entry.description && <p class="entry-description">{entry.description}</p>}
+                                        {entry.project && <p class="entry-project"><span>Research / degree project: </span>{entry.project}</p>}
+                                    </article>
+                                </li>
+                            ))}
+                        </ol>
+                    </section>
+                ))}
+            </div>
+            <div class="resume-end">
+                <a href={sitePath("contact/")}>Get in touch <span aria-hidden="true">→</span></a>
+            </div>
+        </div>
     </div>
-
-    <div class="resume_section">                   
-        <Research />
-    </div>
-
-    <div class="resume_section">                   
-        <Industry />
-    </div>
-
-</section>
-
 </MainLayout>
 
+<style>
+    .resume-page { background: #f4f5f7; color: #263749; padding-bottom: 15px; }
+    .resume-page a { color: #24486e; }
+    .resume-page a:hover { text-decoration: underline; }
+    .resume-page a:focus-visible { outline: 3px solid #24486e; outline-offset: 4px; }
+    .resume-intro { padding: 0 24px 20px; }
+    .section-links { margin-bottom: 0; }
+    .section-links a:hover { text-decoration: none; }
+    .section-links .causes_filter { max-width: 100%; }
+    .section-links span { margin-left: 7px; color: #687584; font-size: 11px; font-weight: 400; }
+    .resume-sections { padding-top: 0; }
+    .career-section { background: #fff; margin-bottom: 16px; scroll-margin-top: 20px; }
+    .career-section-heading { display: flex; align-items: center; gap: 18px; padding: 9px 24px; background: #e7edf5; border-bottom: 1px solid #d6dce4; }
+    .section-number { font-size: 11px; color: #526f9b; letter-spacing: 1px; }
+    .career-section h2 { font-size: 21px; font-weight: 700; line-height: 1.4; margin: 0; }
+    .career-section h2 i { font-size: 16px; color: #526f9b; margin-right: 12px; }
+    .career-list { list-style: none; padding: 0 24px; margin: 0; }
+    .career-entry { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 18px; padding: 10px 10px; border-bottom: 1px solid #e1e5eb; }
+    .career-entry:last-child { border-bottom: 0; }
+    .entry-period { color: #526780; font-size: 14px; font-weight: 500; line-height: 1.5; padding-top: 1px; }
+    .current-role { border-left: 3px solid #7d9fd3; padding-left: 7px; background: #f7f9fc; }
+    .current-label { display: block; color: #24486e; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 2px; }
+    .entry-content { min-width: 0; }
+    .entry-heading { line-height: 1.6; }
+    .entry-content h3 { display: inline; font-size: 16px; line-height: 1.5; font-weight: 700; margin: 0; }
+    .entry-organization { display: inline; color: #24486e; font-size: 14px; line-height: 1.6; font-weight: 500; }
+    .entry-organization::before { content: " · "; color: #8793a1; padding-inline: 5px; }
+    .entry-meta { color: #576575; font-size: 12px; line-height: 1.6; margin-top: 3px; }
+    .entry-department a { color: inherit; }
+    .entry-location { color: #687584; }
+    .meta-separator { color: #8793a1; padding-inline: 3px; }
+    .entry-description { color: #576575; font-size: 12px; line-height: 1.6; margin-top: 5px; }
+    .entry-project { color: #576575; font-size: 12px; line-height: 1.6; margin-top: 5px; }
+    .entry-project span { color: #687584; font-size: 11px; font-weight: 600; }
+    .resume-end { display: flex; justify-content: flex-end; gap: 20px; padding: 0 12px 24px; }
+    .resume-end a { font-size: 12px; font-weight: 700; }
+    @media (max-width: 767px) {
+        .resume-intro { padding: 0 18px 16px; }
+        .section-links .causes_filter a { font-size: 14px; }
+        .career-section-heading { padding: 9px 18px; gap: 14px; }
+        .career-section h2 { font-size: 18px; }
+        .career-list { padding-inline: 18px; }
+        .career-entry { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 10px 0; }
+        .current-role { padding-left: 10px; }
+        .entry-period { padding-top: 0; }
+        .current-label { display: inline; margin: 0 12px 0 0; }
+        .entry-content h3 { font-size: 16px; }
+    }
+</style>
+
+<script>
+    const sectionLinks = document.querySelectorAll<HTMLAnchorElement>(".resume-page .section-links a");
+    const updateCurrentSection = () => {
+        const current = window.location.hash || "#academic-experience";
+        sectionLinks.forEach((link) => {
+            const active = link.hash === current;
+            link.closest("li")?.classList.toggle("active", active);
+            if (active) link.setAttribute("aria-current", "location");
+            else link.removeAttribute("aria-current");
+        });
+    };
+    window.addEventListener("hashchange", updateCurrentSection);
+    updateCurrentSection();
+</script>

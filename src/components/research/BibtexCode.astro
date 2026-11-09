@@ -1,0 +1,57 @@
+---
+interface Props {
+    code: string;
+    label: string;
+}
+const { code, label } = Astro.props;
+type Token = { text: string; kind?: "entry" | "key" | "field" | "value" | "punctuation" };
+const tokens: Token[] = code.split("\n").flatMap((line, index) => {
+    const prefix: Token[] = index ? [{ text: "\n" }] : [];
+    const entry = line.match(/^(@[A-Za-z]+)(\{)([^,]+)(,)$/);
+    if (entry) return [...prefix,
+        { text: entry[1], kind: "entry" },
+        { text: entry[2], kind: "punctuation" },
+        { text: entry[3], kind: "key" },
+        { text: entry[4], kind: "punctuation" },
+    ];
+    const field = line.match(/^(\s*)([\w-]+)(\s*=\s*)(\{)(.*)(\})(,?)$/);
+    if (field) return [...prefix,
+        { text: field[1] },
+        { text: field[2], kind: "field" },
+        { text: field[3] + field[4], kind: "punctuation" },
+        { text: field[5], kind: "value" },
+        { text: field[6] + field[7], kind: "punctuation" },
+    ];
+    return [...prefix, { text: line, kind: "punctuation" }];
+});
+---
+
+<pre class="bibtex-code" tabindex="0" aria-label={label}><code class="language-bibtex">{tokens.map((token) => token.kind ? <span class={token.kind}>{token.text}</span> : token.text)}</code></pre>
+
+<style>
+    .bibtex-code {
+        background: #182536;
+        color: #dce5f1;
+        border: 1px solid #2f425c;
+        border-radius: 5px;
+        padding: 15px;
+        margin: 0;
+        font-size: 12px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        tab-size: 2;
+        color-scheme: dark;
+    }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .entry { color: #c4b5fd; }
+    .key { color: #8dc9f7; }
+    .field { color: #70d6c2; }
+    .value { color: #e7d6ad; }
+    .punctuation { color: #a2b2c8; }
+    code ::selection { background: #375575; color: #fff; }
+    .bibtex-code:focus-visible { outline: 2px solid #24486e; outline-offset: 4px; }
+    @media (min-width: 768px) {
+        .bibtex-code { padding: 12px; line-height: 1.6; }
+    }
+</style>

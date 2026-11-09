@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import bibtexParse from "bibtex-parse";
+import { publicationResources } from "../data/publication-resources";
 
 export type PublicationType =
   | "article"
@@ -34,6 +35,7 @@ export interface Publication {
   pages?: string;
   doi?: string;
   url?: string;
+  repository?: string;
   abstract?: string;
   keywords?: string[];
   pdf?: string;
@@ -194,7 +196,8 @@ function normalizePublication(entry: any): Publication {
     number: clean(getBibtexField(fields, "number") ?? getBibtexField(fields, "issue")),
     pages: clean(getBibtexField(fields, "pages")),
     doi: normalizeDOI(clean(getBibtexField(fields, "doi"))),
-    url: clean(getBibtexField(fields, "url")),
+    url: clean(getBibtexField(fields, "url")) ?? publicationResources[id]?.paper,
+    repository: publicationResources[id]?.repository,
     abstract: clean(getBibtexField(fields, "abstract")),
     keywords: getBibtexField(fields, "keywords")
       ? getBibtexField(fields, "keywords")

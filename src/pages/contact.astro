@@ -2,8 +2,8 @@
 import { sitePath } from "../lib/urls";
 import MainLayout from "../layouts/MainLayout.astro";
 import Social from "../components/navigation/Social.astro";
-
-const portraitURL = sitePath("img/avatars/formal.webp");
+import { Image } from "astro:assets";
+import portrait from "../../public/img/avatars/updated.jpg";
 ---
 
 <MainLayout
@@ -11,160 +11,76 @@ const portraitURL = sitePath("img/avatars/formal.webp");
     description="Contact Diego Rincon-Yanez, a computer science researcher working on Knowledge Graphs and Neuro-Symbolic AI. Find his email and academic profiles."
     pageType="ContactPage"
 >
-    <section
-        class="container about_person_area"
-        id="contact"
-        aria-labelledby="contact-title"
-    >
-        <div class="row">
-            <div class="col-md-5 contact-profile">
-                <div class="person_img">
-                    <img
-                        src={portraitURL}
-                        alt="Portrait of Diego Rincon-Yanez"
-                        width="640"
-                        height="640"
-                        decoding="async"
-                    />
+    <section class="container" id="contact" aria-labelledby="contact-title">
+        <header class="contact-intro">
+            <div class="contact-copy">
+                <p class="contact-eyebrow">Contact</p>
+                <h1 id="contact-title">Diego Rincon-Yanez</h1>
+                <p class="contact-role">Researcher &amp; Computer Scientist</p>
+                <p class="contact-specialism">Knowledge Graphs &amp; Neuro-Symbolic AI</p>
+                <p class="contact-location"><i class="fa-solid fa-location-dot" aria-hidden="true"></i> Austria</p>
+                <p class="contact-address">Email: <a href="mailto:diego-rincon@outlook.com">diego-rincon at outlook.com</a></p>
+                <div class="contact-actions">
+                    <a class="contact-primary" href={sitePath("research/")}>Explore research <span aria-hidden="true">→</span></a>
+                    <a class="resume-link" href={sitePath("resume/")}>View résumé <span aria-hidden="true">→</span></a>
                 </div>
-                <nav
-                    class="profile-links"
-                    aria-label="Academic and social profiles"
-                >
+                <nav class="contact-profiles" aria-label="Academic and social profiles">
+                    <p>Academic &amp; social profiles</p>
                     <Social />
                 </nav>
             </div>
-            <div class="col-md-7">
-                <div class="person_details">
-                    <h2>Hi, I'm <span>Diego Rincon-Yanez</span></h2>
-                    <p class="contact-role">
-                        Researcher &amp; Computer Scientist
-                    </p>
-                    <p>
-                        I am a computer science researcher and engineer
-                        combining academic expertise with hands-on industry
-                        experience. Over more than fifteen years, I have worked
-                        as a university professor, researcher, IT architect,
-                        CTO, and full-stack engineer for multiple organizations.
-                    </p>
-                    <p>
-                        I currently work as a researcher at the Institute for
-                        Data, Process and Knowledge Management at the Vienna
-                        University of Economics and Business (WU Vienna). My
-                        research focuses on Neuro-Symbolic AI, bridging symbolic
-                        representation and neural learning through Semantic Web
-                        frameworks, Knowledge Graphs, vector-based
-                        representations, and reproducible machine learning
-                        processes.
-                    </p>
-                    <p>
-                        I also have a soft spot for other areas of computer
-                        science, including distributed computing and
-                        high-performance computing.
-                    </p>
-                </div>
-                <div class="left_contact_details">
-                    <div class="media">
-                        <div class="media-left">
-                            <i
-                                class="fa-solid fa-location-pin"
-                                aria-hidden="true"></i>
-                        </div>
-                        <div class="media-body">
-                            <h2>Location</h2>
-                            <p>Austria</p>
-                        </div>
-                    </div>
-                    <div class="media">
-                        <div class="media-left">
-                            <i class="fa-solid fa-envelope" aria-hidden="true"
-                            ></i>
-                        </div>
-                        <div class="media-body">
-                            <h2>Email</h2>
-                            <p>diego-rincon at outlook.com</p>
-                        </div>
-                    </div>
-                </div>
+            <figure class="contact-portrait">
+                <Image src={portrait} alt="Portrait of Diego Rincon-Yanez" width={640} widths={[320, 640, 960]} sizes="(max-width: 767px) 280px, 340px" format="webp" fetchpriority="high" loading="eager" />
+            </figure>
+        </header>
+        <section class="contact-about" aria-labelledby="about-title">
+            <h2 id="about-title">About my work</h2>
+            <div>
+                <p>I research Knowledge Graphs and Neuro-Symbolic AI at the Institute for Data, Process and Knowledge Management at WU Vienna. My work focuses on knowledge graph construction, semantic integration, and methods that combine symbolic knowledge representation with neural learning.</p>
+                <p>My background spans more than fifteen years in academic research, software engineering, and technical leadership, including roles as a CTO and IT architect. This experience informs my approach to research problems involving heterogeneous data, from organizing and representing knowledge to applying it in practical settings.</p>
+                <p>My wider interests include distributed computing and high-performance computing.</p>
             </div>
-        </div>
+        </section>
     </section>
 </MainLayout>
 
 <style>
-    #contact {
-        padding-bottom: 40px;
-    }
-
-    #contact h1 {
-        margin: 0 0 30px;
-        font-size: 36px;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-
-    .contact-profile {
-        text-align: center;
-    }
-
-    #contact .person_img {
-        display: block;
-        width: 100%;
-        max-width: 322px;
-        margin: 0 auto;
-    }
-
-    #contact .person_img img {
-        display: block;
-        width: 100%;
-        max-width: 100%;
-        height: auto;
-    }
-
-    .profile-links {
-        margin-top: 24px;
-    }
-
-    #contact .person_details {
-        margin: 0;
-        padding-top: 0;
-    }
-
-    .person_details h2 {
-        margin-top: 0;
-        font-size: 32px;
-        font-weight: bold;
-        line-height: 1.25;
-        text-transform: uppercase;
-    }
-
-    .person_details h2 span {
-        color: #526f9b;
-    }
-
-    #contact .person_details p {
-        text-align: left;
-    }
-
-    #contact .contact-role {
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    .left_contact_details h2 {
-        margin: 0 0 3px;
-        font-size: 14px;
-        font-weight: bold;
-        text-transform: uppercase;
-    }
-
+    #contact { padding-bottom: 40px; }
+    .contact-intro { display: grid; grid-template-columns: minmax(0, 1fr) 340px; align-items: center; gap: 50px; background: #fff; padding: 44px 40px; border-bottom: 1px solid #d6dce4; }
+    .contact-eyebrow { color: #526f9b; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 17px; }
+    .contact-intro h1 { color: #263749; font-family: "Raleway", sans-serif; font-size: 37px; font-weight: 700; letter-spacing: -1px; line-height: 1.2; margin: 0 0 18px; }
+    .contact-role { color: #24486e; font-size: 18px; line-height: 1.5; margin-bottom: 9px; }
+    .contact-specialism { color: #576575; font-size: 14px; line-height: 1.7; }
+    .contact-location { color: #687584; font-size: 12px; margin-top: 15px; }
+    .contact-location i { margin-right: 5px; }
+    .contact-address { color: #687584; font-size: 12px; line-height: 1.7; margin-top: 7px; }
+    .contact-address a { color: #24486e; }
+    .contact-address a:hover { text-decoration: underline; }
+    .contact-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 22px; margin-top: 24px; }
+    .contact-primary { display: inline-flex; align-items: center; gap: 10px; color: #fff; background: #24486e; padding: 12px 16px; font-size: 13px; }
+    .contact-primary:hover { color: #fff; background: #1b3856; }
+    .resume-link { color: #24486e; font-size: 12px; font-weight: 700; }
+    .resume-link:hover { text-decoration: underline; }
+    .contact-actions a:focus-visible { outline: 3px solid #24486e; outline-offset: 4px; }
+    .contact-profiles { margin-top: 28px; }
+    .contact-profiles > p { color: #687584; font-size: 11px; margin-bottom: 12px; }
+    .contact-profiles :global(.social_icon) { display: flex; flex-wrap: wrap; gap: 10px; }
+    .contact-profiles :global(.social_icon li) { float: none; margin: 0; }
+    .contact-portrait { margin: 0; }
+    .contact-portrait img { display: block; width: 100%; height: auto; }
+    .contact-about { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 40px; padding: 36px 40px 0; }
+    .contact-about h2 { font-size: 20px; font-weight: 700; line-height: 1.4; color: #263749; margin: 0; }
+    .contact-about p { color: #576575; font-size: 15px; line-height: 1.8; margin-bottom: 16px; }
     @media (max-width: 991px) {
-        .contact-profile {
-            margin-bottom: 32px;
-        }
-
-        .person_details h2 {
-            font-size: 28px;
-        }
+        .contact-intro { grid-template-columns: minmax(0, 1fr) 250px; gap: 25px; padding: 35px 25px; }
+        .contact-intro h1 { font-size: 30px; }
+        .contact-about { grid-template-columns: 150px minmax(0, 1fr); gap: 25px; padding-inline: 25px; }
+    }
+    @media (max-width: 767px) {
+        .contact-intro { grid-template-columns: 1fr; padding: 30px 20px; }
+        .contact-intro h1 { font-size: 29px; }
+        .contact-role { font-size: 16px; }
+        .contact-portrait { width: 100%; max-width: 280px; margin: 10px auto 0; }
+        .contact-about { grid-template-columns: 1fr; gap: 18px; padding: 28px 20px 0; }
     }
 </style>

@@ -11,8 +11,13 @@ const deploymentBase = process.env.ASTRO_BASE_PATH || "/";
 export default defineConfig({
 	site: SITE_URL,
 	base: deploymentBase,
-	trailingSlash: "always",
-	redirects: { "/projects": `${deploymentBase.replace(/\/$/, "")}/artifacts/` },
+	// Accept both URL forms so unknown paths reach the custom 404 page.
+	trailingSlash: "ignore",
+	redirects: {
+        "/projects": `${deploymentBase.replace(/\/$/, "")}/artifacts/`,
+        "/resume-preview": `${deploymentBase.replace(/\/$/, "")}/resume/`,
+        "/research-preview": `${deploymentBase.replace(/\/$/, "")}/research/`,
+    },
     // Development copies are noindex; publish sitemaps only for the root production build.
     integrations: [mdx(), ...(deploymentBase === "/" ? [sitemap()] : [])],
 	fonts: [

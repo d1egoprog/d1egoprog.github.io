@@ -1,362 +1,243 @@
 ---
 import MainLayout from "../layouts/MainLayout.astro";
-import { publications, getPublicationYears } from "../lib/publications";
+import BibtexCode from "../components/research/BibtexCode.astro";
+import { publications, getPublicationYears, type Publication } from "../lib/publications";
 
-const years = getPublicationYears();
-
-const publicationTypeClasses = {
-  article: "journal",
-  inproceedings: "conference",
-  incollection: "book",
-  book: "book",
-  inbook: "book",
-  phdthesis: "other",
-  mastersthesis: "other",
-  techreport: "other",
-  misc: "other",
-  unknown: "other",
-};
-
-const publicationTypeIcons = {
-  article: "fa-newspaper",
-  inproceedings: "fa-chalkboard-user",
-  incollection: "fa-book",
-  book: "fa-book",
-  inbook: "fa-book",
-  phdthesis: "fa-graduation-cap",
-  mastersthesis: "fa-graduation-cap",
-  techreport: "fa-file-lines",
-  misc: "fa-file-lines",
-  unknown: "fa-file-lines",
-};
-
-function formatBibtex(publication: (typeof publications)[number]) {
-  const fields = Object.entries(publication.bibtex ?? {}).filter(
-    ([key]) => !["abstract", "note", "keywords"].includes(key)
-  );
-
-  const body = fields
-    .map(([key, value]) => {
-      const cleanValue = String(value ?? "")
-        .replace(/\s+/g, " ")
-        .trim();
-      return `  ${key} = {${cleanValue}}`;
-    })
-    .join(",\n");
-
-  return `@${publication.type}{${publication.id},\n${body}\n}`;
+type PublicationCategory = "journal" | "conference" | "book" | "other";
+function categoryFor(type: Publication["type"]): PublicationCategory {
+    if (type === "article") return "journal";
+    if (type === "inproceedings") return "conference";
+    if (["book", "inbook", "incollection"].includes(type)) return "book";
+    return "other";
 }
+const categoryLabels = { journal: "Journal", conference: "Conference", book: "Book / chapter", other: "Other" };
+const filters = [
+    { id: "all", label: "All" },
+    { id: "journal", label: "Journals" },
+    { id: "conference", label: "Conferences" },
+    { id: "book", label: "Books / chapters" },
+];
+function formatBibtex(publication: Publication) {
+    const fields = Object.entries(publication.bibtex)
+        .filter(([key]) => !["abstract", "note", "keywords"].includes(key))
+        .map(([key, value]) => `  ${key} = {${String(value).replace(/\s+/g, " ").trim()}}`);
+    return `@${publication.type}{${publication.id},\n${fields.join(",\n")}\n}`;
+}
+function isOwner(name: string) {
+    const normalized = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    return normalized.includes("rincon") && (normalized.includes("diego") || normalized.includes("yanez") || /\bd\b/.test(normalized));
+}
+const papers = publications.map((publication, index) => ({
+    ...publication,
+    index,
+    category: categoryFor(publication.type),
+    citation: formatBibtex(publication),
+    paperURL: publication.pdf || publication.url,
+    doiURL: publication.doi ? `https://doi.org/${publication.doi}` : undefined,
+    venue: publication.journal || publication.booktitle || publication.publisher || publication.organization,
+}));
+const years: (number | undefined)[] = getPublicationYears();
+if (papers.some((paper) => paper.year === undefined)) years.push(undefined);
 ---
 
 <MainLayout
     title="Research"
-    description="Publications by Diego Rincon-Yanez, including journal articles, conference papers, and work on Knowledge Graphs and Neuro-Symbolic AI."
+    description="Publications by Diego Rincon-Yanez, with abstracts and BibTeX citations."
     pageType="CollectionPage"
 >
-  <section class="container research_area" id="research">
-    <div class="main_title">
-      <h2>Publications</h2>
-    </div>
-    
-    <div class="porfolio_menu" role="group" aria-label="Publication filters">
-      <ul class="causes_filter">
-        <li><button type="button" data-filter="journal" aria-pressed="false">Journal</button></li>
-        <li><button type="button" data-filter="conference" aria-pressed="false">Conference</button></li>
-        <li><button type="button" data-filter="book" aria-pressed="false">Book / Chapters</button></li>
-      </ul>
-    </div>
+    <section class="container research-page" id="research" aria-labelledby="publications-title">
+        <header class="publications-header">
+            <div class="main_title"><h1 id="publications-title">Publications</h1></div>
+            <div class="porfolio_menu publication-filters" role="group" aria-label="Filter publications" hidden>
+                <ul class="causes_filter">
+                    {filters.map((filter) => (
+                        <li class:list={[{ active: filter.id === "all" }]}>
+                            <button type="button" data-paper-filter={filter.id} aria-pressed={filter.id === "all"} aria-controls="publications-list">
+                                {filter.label}<span>{filter.id === "all" ? papers.length : papers.filter((paper) => paper.category === filter.id).length}</span>
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div class="publication-toolbar">
+                <p id="publication-status" role="status" aria-live="polite" aria-atomic="true">Showing all {papers.length} publications.</p>
+            </div>
+        </header>
 
-    {years.map((year) => (
-      <div class="year-group" data-year={year}>
-        <div class="col-md-12 research_section">
-          <h3>{year}</h3>
+        <div id="publications-list">
+            {years.map((year) => (
+                <section class="publication-year" data-paper-year aria-labelledby={`year-${year ?? "undated"}`}>
+                    <header class="year-heading">
+                        <h2 id={`year-${year ?? "undated"}`}>{year ?? "Undated"}</h2>
+                        <span data-year-count>{papers.filter((paper) => paper.year === year).length} {papers.filter((paper) => paper.year === year).length === 1 ? "publication" : "publications"}</span>
+                    </header>
+                    <div class="year-papers">
+                        {papers.filter((paper) => paper.year === year).map((paper) => (
+                            <article class="preview-paper" data-paper-category={paper.category} aria-labelledby={`paper-title-${paper.index}`}>
+                                <h3 id={`paper-title-${paper.index}`}>
+                                    {paper.paperURL || paper.doiURL ? <a href={paper.paperURL || paper.doiURL} target="_blank" rel="noopener noreferrer">{paper.title}</a> : paper.title}
+                                </h3>
+                                <p class="paper-authors">
+                                    {paper.authors.map((author, index) => <>{index > 0 && ", "}{isOwner(author.fullName) ? <strong>{author.fullName}</strong> : author.fullName}</>)}
+                                </p>
+                                <p class="paper-venue">
+                                    <span class="paper-type">{categoryLabels[paper.category]}</span>
+                                    {paper.venue && <> <span aria-hidden="true">·</span> {paper.venue}</>}
+                                    {paper.volume && <>, {paper.volume}</>}{paper.number && <>({paper.number})</>}{paper.pages && <>, {paper.pages}</>}
+                                </p>
+                                <div class="paper-actions">
+                                    {paper.paperURL && paper.paperURL !== paper.doiURL && <a href={paper.paperURL} target="_blank" rel="noopener noreferrer" aria-label={`Open paper: ${paper.title}`}>Paper <span aria-hidden="true">↗</span></a>}
+                                    {paper.doiURL && <a href={paper.doiURL} target="_blank" rel="noopener noreferrer" aria-label={`DOI for ${paper.title}`}>DOI <span aria-hidden="true">↗</span></a>}
+                                    {paper.repository && <a href={paper.repository} target="_blank" rel="noopener noreferrer" aria-label={`GitHub repository for ${paper.title}`}>GitHub <span aria-hidden="true">↗</span></a>}
+                                    <button class="details-trigger" type="button" aria-expanded="false" aria-controls={`paper-details-${paper.index}`} aria-label={`Abstract and BibTeX for ${paper.title}`}><span>Abstract &amp; BibTeX</span><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></button>
+                                </div>
+                                <div class:list={["citation-panel", { "no-abstract": !paper.abstract }]} id={`paper-details-${paper.index}`} hidden>
+                                    <section class="abstract-column" aria-labelledby={`abstract-title-${paper.index}`}>
+                                        <h4 id={`abstract-title-${paper.index}`}>Abstract</h4>
+                                        <p>{paper.abstract || "No abstract is available in the current publication record."}</p>
+                                    </section>
+                                    <section class="bibtex-column" aria-labelledby={`bibtex-title-${paper.index}`}>
+                                        <div class="citation-heading">
+                                            <h4 id={`bibtex-title-${paper.index}`}>BibTeX</h4>
+                                            <button class="copy-citation" type="button" aria-label={`Copy BibTeX for ${paper.title}`}>Copy BibTeX</button>
+                                        </div>
+                                        <BibtexCode code={paper.citation} label={`BibTeX citation for ${paper.title}`} />
+                                        <p class="copy-status" role="status" aria-live="polite"></p>
+                                    </section>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+            ))}
         </div>
-
-        {publications
-          .filter((publication) => publication.year === year)
-          .map((publication) => {
-            const publicationClass = publicationTypeClasses[publication.type] ?? "other";
-            const typeIcon = publicationTypeIcons[publication.type] ?? "fa-file-lines";
-            const citationSource =
-              publication.journal ??
-              publication.booktitle ??
-              publication.publisher ??
-              publication.organization ??
-              "Preprint";
-            const bibtexEntry = formatBibtex(publication);
-
-            return (
-              <article class={`col-md-12 research_section publication-card ${publicationClass}`}>
-                <div class="col-md-1 research_item_type">
-                  <i class={`fa-solid ${typeIcon}`}></i>
-                </div>
-
-                <div class="col-md-10 research_item_info">
-                  {publication.authors
-                    .map((author) => author.fullName)
-                    .join(", ")}
-                  . <strong>{publication.title}</strong>. {citationSource}
-                  {publication.volume ? `, ${publication.volume}` : ""}
-                  {publication.number ? `(${publication.number})` : ""}
-                  {publication.pages ? `, ${publication.pages}` : ""}
-                  {publication.year ? ` (${publication.year})` : ""}
-                  {publication.doi ? ", DOI: " : ""}
-                  {publication.doi && (
-                    <a href={`https://doi.org/${publication.doi}`} target="_blank" rel="noreferrer">
-                      {publication.doi}
-                    </a>
-                  )}
-                   
-                  <button
-                    type="button"
-                    class="publication-toggle"
-                    data-target={`publication-${publication.id}`}
-                    aria-expanded="false"
-                  >
-                   more ...
-                  </button>
-                </div>
-
-                <div class="col-md-1 research_item_links">
-                  <ul class="research_links_list">
-                    {publication.doi && (
-                      <li>
-                        <a href={`https://doi.org/${publication.doi}`} target="_blank" rel="noreferrer">
-                          <i class="fa-solid fa-link"></i>DOI
-                        </a>
-                      </li>
-                    )}
-                    {publication.url && (
-                      <li>
-                        <a href={publication.url} target="_blank" rel="noreferrer">
-                          <i class="fa-solid fa-link"></i>LINK
-                        </a>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                <div class="col-md-12 publication-panel" id={`publication-${publication.id}`} hidden>
-                  <div class="publication-split">
-                    <div class="publication-column publication-column-bibtex">
-                      <button
-                        type="button"
-                        class="copy-button"
-                        title="Copy BibTeX"
-                        data-copy={bibtexEntry}
-                        aria-label={`Copy BibTeX entry for ${publication.title}`}
-                      >
-                        <i class="fa-regular fa-copy"></i>
-                      </button>
-                      <pre><code>{bibtexEntry}</code></pre>
-                    </div>
-
-                    <div class="publication-column publication-column-abstract">
-                      <span class="publication-label">Abstract</span>
-                      <div class="publication-abstract-text">
-                        {publication.abstract ? publication.abstract : "No abstract available for this publication."}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-      </div>
-    ))}
-  </section>
-
-  <style is:global>
-    .publication-card {
-      margin-bottom: 1.25rem;
-      border-radius: 12px;
-      overflow: hidden;
-    }
-
-    .publication-card.is-hidden {
-      display: none;
-    }
-
-    .publication-toggle {
-      display: inline-block;
-      margin-left: 12px;
-      background: transparent;
-      border: none;
-      color: #1b7ae0;
-      font-weight: 600;
-      padding: 0;
-      cursor: pointer;
-    }
-
-    .publication-toggle:hover {
-      text-decoration: underline;
-    }
-
-    .publication-panel {
-      margin-top: 1rem;
-      background: rgba(17, 24, 39, 0.02);
-      border: 1px solid rgba(17, 24, 39, 0.08);
-      border-radius: 8px;
-      padding: 0.7rem;
-    }
-
-    .publication-split {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-      gap: 1rem;
-    }
-
-    .publication-column {
-      min-width: 0;
-    }
-
-    .publication-column-bibtex {
-      position: relative;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(17, 24, 39, 0.08);
-      border-radius: 8px;
-      padding: 0.65rem 0.65rem 0.5rem;
-      color: #1f2937;
-      overflow: auto;
-    }
-
-    .publication-column-bibtex pre {
-      margin: 0.9rem 0 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-      font-size: 0.8rem;
-      line-height: 1.55;
-      color: #1f2937;
-    }
-
-    .publication-meta-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.75rem;
-    }
-
-    .copy-button {
-      position: absolute;
-      top: 0.6rem;
-      right: 0.6rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 26px;
-      height: 26px;
-      border: 1px solid rgba(15, 23, 42, 0.2);
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.7);
-      color: #111827;
-      cursor: pointer;
-      transition: opacity 0.2s ease;
-      z-index: 1;
-    }
-
-    .copy-button:hover {
-      opacity: 0.85;
-    }
-
-    .publication-column-abstract {
-      background: rgba(255, 255, 255, 0.65);
-      border: 1px solid rgba(17, 24, 39, 0.08);
-      border-radius: 10px;
-      padding: 0.75rem;
-    }
-
-    .publication-abstract-text {
-      margin-top: 0.5rem;
-      color: #1f2937;
-      line-height: 1.7;
-      font-size: 0.96rem;
-    }
-
-    @media (max-width: 768px) {
-      .publication-split {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-
-  <script is:inline>
-    const filterButtons = document.querySelectorAll('#research .causes_filter button[data-filter]');
-    const publicationCards = document.querySelectorAll('.publication-card');
-    const filterState = new Set();
-
-    const updatePublicationFilters = () => {
-      publicationCards.forEach((card) => {
-        
-        const category = card.classList.contains('journal')
-          ? 'journal'
-          : card.classList.contains('conference')
-            ? 'conference'
-            : card.classList.contains('book')
-              ? 'book'
-              : 'other';
-        
-        const shouldShow = 
-        filterState.size === 0 || filterState.has(category);
-        
-        card.classList.toggle('is-hidden', !shouldShow);
-        });
-    };
-
-    filterButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const filter = button.getAttribute('data-filter');
-     
-        if (!filter) return;
-        
-        if (filterState.has(filter)) {
-          filterState.delete(filter);
-          button.closest('li').classList.remove('active');
-          button.setAttribute('aria-pressed', 'false');
-        } else {
-          filterState.add(filter);
-          button.closest('li').classList.add('active');
-          button.setAttribute('aria-pressed', 'true');
-        }
-
-        updatePublicationFilters();
-      });
-    });
-
-    const toggleButtons = document.querySelectorAll('.publication-toggle');
-
-    toggleButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const targetId = button.getAttribute('data-target');
-        const panel = document.getElementById(targetId);
-        const expanded = button.getAttribute('aria-expanded') === 'true';
-
-        button.setAttribute('aria-expanded', String(!expanded));
-        button.textContent = expanded ? 'Show details' : 'Hide details';
-
-        if (panel) {
-          panel.hidden = expanded;
-        }
-      });
-    });
-
-    document.querySelectorAll('.copy-button').forEach((button) => {
-      button.addEventListener('click', async () => {
-        const text = button.getAttribute('data-copy');
-
-        if (!text) return;
-
-        try {
-          await navigator.clipboard.writeText(text);
-          const original = button.innerHTML;
-          button.innerHTML = '<i class="fa-solid fa-check"></i>';
-          window.setTimeout(() => {
-            button.innerHTML = original;
-          }, 1200);
-        } catch (error) {
-          console.error('Failed to copy BibTeX entry:', error);
-        }
-      });
-    });
-  </script>
+        <p class="no-publications" hidden>No publications in this category.</p>
+    </section>
 </MainLayout>
 
+<style>
+    .research-page { color: #263749; padding-bottom: 30px; }
+    .research-page a { color: #24486e; }
+    .research-page a:hover { text-decoration: underline; }
+    .research-page :is(a, button, pre):focus-visible { outline: 2px solid #24486e; outline-offset: 4px; }
+    .research-page [hidden] { display: none !important; }
+    .publication-filters { margin-bottom: 20px; }
+    .publication-filters .causes_filter { display: inline-flex; justify-content: center; flex-wrap: wrap; gap: 6px 28px; max-width: 100%; }
+    .publication-filters .causes_filter li { margin: 0; }
+    .publication-filters button span { color: #687584; font-size: 11px; font-weight: 400; margin-left: 7px; }
+    .publication-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding: 0 24px 18px; color: #687584; font-size: 12px; }
+    .publication-year { background: #fff; margin-bottom: 18px; }
+    .year-heading { display: flex; align-items: baseline; gap: 14px; padding: 10px 24px; background: #e7edf5; border-bottom: 1px solid #d6dce4; }
+    .year-heading h2 { font-size: 20px; font-weight: 700; line-height: 1.4; margin: 0; }
+    .year-heading > span { font-size: 11px; color: #687584; }
+    .year-papers { padding: 0 24px; }
+    .preview-paper { padding: 17px 0; border-bottom: 1px solid #e1e5eb; }
+    .preview-paper:last-child { border-bottom: 0; }
+    .preview-paper h3 { font-size: 16px; font-weight: 700; line-height: 1.5; margin: 0 0 5px; }
+    .preview-paper h3 a { color: #263749; }
+    .paper-authors { color: #576575; font-size: 13px; line-height: 1.6; margin-bottom: 5px; }
+    .paper-authors strong { color: #263749; font-weight: 600; }
+    .paper-venue { color: #687584; font-size: 12px; line-height: 1.6; }
+    .paper-type { color: #526780; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; }
+    .paper-venue > span[aria-hidden] { margin: 0 5px; }
+    .paper-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 8px; }
+    .paper-actions a, .details-trigger { font-size: 12px; font-weight: 700; }
+    .details-trigger { display: inline-flex; align-items: center; gap: 9px; padding: 0; border: 0; background: transparent; color: #24486e; cursor: pointer; line-height: 1.7; }
+    .details-trigger:hover { text-decoration: underline; }
+    .details-trigger i { font-size: 9px; }
+    .details-trigger[aria-expanded="true"] i { transform: rotate(180deg); }
+    .citation-panel { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 24px; background: #f6f8fb; border: 1px solid #d6dce4; margin-top: 15px; padding: 20px; }
+    .citation-panel.no-abstract { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+    .citation-panel > section { min-width: 0; }
+    .citation-panel h4 { font-size: 14px; font-weight: 700; line-height: 1.5; margin: 0 0 12px; }
+    .abstract-column p { color: #425367; font-size: 13px; line-height: 1.8; overflow-wrap: anywhere; }
+    .citation-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; }
+    .copy-citation { background: #fff; border: 1px solid #c5cfdb; color: #24486e; padding: 4px 9px; font-size: 11px; font-weight: 700; white-space: nowrap; cursor: pointer; }
+    .copy-citation:hover { background: #e7edf5; }
+    .copy-status { color: #526780; font-size: 11px; line-height: 1.6; margin-top: 6px; }
+    .copy-status:empty { display: none; }
+    .no-publications { text-align: center; color: #687584; padding: 28px; }
+    @media (min-width: 768px) {
+        .publication-filters { margin-bottom: 14px; }
+        .publication-toolbar { padding-bottom: 12px; }
+        .publication-year { margin-bottom: 12px; }
+        .year-heading { padding-block: 7px; }
+        .preview-paper { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 18px; padding-block: 11px; }
+        .preview-paper h3, .paper-authors { grid-column: 1 / -1; margin: 0; }
+        .preview-paper h3 { line-height: 1.4; }
+        .paper-authors { line-height: 1.5; }
+        .paper-venue { grid-column: 1; min-width: 0; line-height: 1.55; }
+        .paper-actions { grid-column: 2; align-self: start; gap: 6px 14px; margin-top: 0; }
+        .citation-panel { grid-column: 1 / -1; gap: 18px; margin-top: 9px; padding: 16px; }
+        .citation-panel h4 { margin-bottom: 8px; }
+        .abstract-column p { line-height: 1.65; }
+    }
+    @media (max-width: 767px) {
+        .publication-filters .causes_filter { gap: 6px 20px; }
+        .publication-filters .causes_filter button { font-size: 14px; }
+        .publication-toolbar { padding-inline: 18px; font-size: 11px; }
+        .year-heading { padding-inline: 18px; }
+        .year-papers { padding-inline: 18px; }
+        .preview-paper { padding-block: 15px; }
+        .citation-panel { grid-template-columns: minmax(0, 1fr); padding: 15px; gap: 22px; }
+    }
+</style>
+
+<script>
+    const page = document.querySelector<HTMLElement>("#research");
+    if (page) {
+        const filters = page.querySelectorAll<HTMLButtonElement>("[data-paper-filter]");
+        const groups = page.querySelectorAll<HTMLElement>("[data-paper-year]");
+        const status = page.querySelector<HTMLElement>("#publication-status");
+        const empty = page.querySelector<HTMLElement>(".no-publications");
+        const total = page.querySelectorAll(".preview-paper").length;
+        filters.forEach((button) => button.addEventListener("click", () => {
+            const filter = button.dataset.paperFilter ?? "all";
+            let visible = 0;
+            groups.forEach((group) => {
+                let groupCount = 0;
+                group.querySelectorAll<HTMLElement>("[data-paper-category]").forEach((paper) => {
+                    paper.hidden = filter !== "all" && paper.dataset.paperCategory !== filter;
+                    if (!paper.hidden) groupCount++;
+                });
+                group.hidden = groupCount === 0;
+                const count = group.querySelector<HTMLElement>("[data-year-count]");
+                if (count) count.textContent = `${groupCount} ${groupCount === 1 ? "publication" : "publications"}`;
+                visible += groupCount;
+            });
+            filters.forEach((candidate) => {
+                const active = candidate === button;
+                candidate.setAttribute("aria-pressed", String(active));
+                candidate.closest("li")?.classList.toggle("active", active);
+            });
+            if (status) status.textContent = filter === "all" ? `Showing all ${total} publications.` : `Showing ${visible} of ${total} publications.`;
+            if (empty) empty.hidden = visible > 0;
+        }));
+        const controls = page.querySelector<HTMLElement>(".publication-filters");
+        if (controls) controls.hidden = false;
+
+        page.querySelectorAll<HTMLButtonElement>(".details-trigger").forEach((button) => {
+            button.addEventListener("click", () => {
+                const panel = document.getElementById(button.getAttribute("aria-controls") ?? "");
+                if (!panel) return;
+                const expanded = button.getAttribute("aria-expanded") === "true";
+                button.setAttribute("aria-expanded", String(!expanded));
+                panel.hidden = expanded;
+            });
+        });
+        page.querySelectorAll<HTMLButtonElement>(".copy-citation").forEach((button) => {
+            button.addEventListener("click", async () => {
+                const column = button.closest(".bibtex-column");
+                const citation = column?.querySelector("code")?.textContent;
+                const feedback = column?.querySelector<HTMLElement>(".copy-status");
+                if (!citation || !feedback) return;
+                try {
+                    await navigator.clipboard.writeText(citation);
+                    feedback.textContent = "BibTeX copied.";
+                } catch {
+                    feedback.textContent = "Select the citation text to copy it manually.";
+                }
+            });
+        });
+    }
+</script>

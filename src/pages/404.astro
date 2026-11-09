@@ -1,0 +1,118 @@
+---
+import MainLayout from "../layouts/MainLayout.astro";
+import { sitePath } from "../lib/urls";
+---
+
+<MainLayout
+    title="Page not found (404)"
+    description="The page you are looking for could not be found. Return to Diego Rincon-Yanez's website."
+    noindex={true}
+>
+    <section class="container not-found" aria-labelledby="not-found-title">
+        <div class="not-found-content">
+            <p class="error-code" aria-hidden="true">404</p>
+            <h1 id="not-found-title">Page not found</h1>
+            <p class="error-description">The page you are looking for may have moved, or the address may be incorrect.</p>
+            <div class="error-actions">
+                <a class="home-link" href={sitePath("")}><i class="fa-solid fa-house" aria-hidden="true"></i> Back to home</a>
+                <a class="contact-link" href={sitePath("contact/")}>Contact me <span aria-hidden="true">→</span></a>
+            </div>
+        </div>
+    </section>
+</MainLayout>
+
+<style>
+    .not-found {
+        display: grid;
+        place-items: center;
+        min-height: 60vh;
+        padding-top: 65px;
+        padding-bottom: 75px;
+        text-align: center;
+    }
+
+    .not-found-content {
+        max-width: 560px;
+    }
+
+    .error-code {
+        color: #7d9fd3;
+        font-family: "Raleway", sans-serif;
+        font-size: clamp(90px, 14vw, 145px);
+        font-weight: 800;
+        letter-spacing: -6px;
+        line-height: 1;
+        margin-bottom: 25px;
+    }
+
+    .not-found h1 {
+        color: #263749;
+        font-family: "Raleway", sans-serif;
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1.25;
+        margin-bottom: 20px;
+    }
+
+    .error-description {
+        color: #576575;
+        font-size: 15px;
+        line-height: 1.8;
+        margin: 0 auto;
+        max-width: 460px;
+    }
+
+    .error-actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 22px 28px;
+        margin-top: 30px;
+    }
+
+    .error-actions a {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .home-link {
+        padding: 12px 20px;
+        color: #fff;
+        background: #24486e;
+    }
+
+    .home-link:hover {
+        color: #fff;
+        background: #1b3856;
+    }
+
+    .contact-link {
+        color: #24486e;
+    }
+
+    .contact-link:hover {
+        color: #24486e;
+        text-decoration: underline;
+    }
+
+    .error-actions a:focus-visible {
+        outline: 3px solid #24486e;
+        outline-offset: 5px;
+    }
+
+    @media (max-width: 575px) {
+        .not-found {
+            min-height: 65vh;
+            padding-top: 50px;
+            padding-bottom: 55px;
+        }
+
+        .not-found h1 {
+            font-size: 27px;
+        }
+    }
+</style>

@@ -26,5 +26,10 @@ pnpm-debug.log*
 .idea/
 
 *.zsh
+git.commit.zsh
+
+# Local page backups and isolated production release checkouts
+.backups/
+.release/
 
 sandbox/
