@@ -2,7 +2,8 @@ name: Build & Deploy Production Site
 
 on:
   push:
-    branches: [main]
+    branches:
+      - website-v2
   workflow_dispatch:
 
 # Source lives on main; Settings > Pages must serve gh-pages / (root).
