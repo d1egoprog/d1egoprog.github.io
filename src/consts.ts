@@ -1,7 +1,7 @@
 // Place any global data in this file.
 // You can import this data from anywhere in your site by using the `import` keyword.
 
-export const SITE_URL = 'https://www.d1egoprog.co/';
+export const SITE_URL = 'https://d1egoprog.github.io/';
 export const PERSON_NAME = 'Diego Rincon-Yanez';
 export const SITE_TITLE = PERSON_NAME;
 export const HOME_TITLE = `${PERSON_NAME} | Knowledge Graphs & Neuro-Symbolic AI`;
