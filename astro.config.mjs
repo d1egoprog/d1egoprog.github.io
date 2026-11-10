@@ -17,6 +17,7 @@ export default defineConfig({
         "/projects": `${deploymentBase.replace(/\/$/, "")}/artifacts/`,
         "/resume-preview": `${deploymentBase.replace(/\/$/, "")}/resume/`,
         "/research-preview": `${deploymentBase.replace(/\/$/, "")}/research/`,
+        "/supervising-preview": `${deploymentBase.replace(/\/$/, "")}/supervising/`,
     },
     // Development copies are noindex; publish sitemaps only for the root production build.
     integrations: [mdx(), ...(deploymentBase === "/" ? [sitemap()] : [])],

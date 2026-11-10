@@ -22,6 +22,8 @@ type Entry = {
     current?: boolean;
     description?: string;
     project?: string;
+    roles?: Pick<Entry, "id" | "title" | "period">[];
+    affiliations?: Pick<Entry, "organization" | "organizationURL" | "department" | "departmentURL">[];
 };
 
 const validURL = (url?: string) => url && /^https?:\/\//.test(url) ? url : undefined;
@@ -33,7 +35,7 @@ const recentFirst = (a: { data: { duration: Duration } }, b: { data: { duration:
     || b.data.duration.start.year - a.data.duration.start.year
     || b.data.duration.start.month - a.data.duration.start.month;
 
-const researchEntries: Entry[] = research.sort(recentFirst).map(({ id, data, body }) => ({
+const researchRoles: Entry[] = research.sort(recentFirst).map(({ id, data, body }) => ({
     id,
     period: period(data.duration),
     title: data.title,
@@ -45,6 +47,22 @@ const researchEntries: Entry[] = research.sort(recentFirst).map(({ id, data, bod
     current: !data.duration.end.year,
     description: id === "trinity" ? body?.trim() : undefined,
 }));
+const earlyXaverianRoles = researchRoles.filter(({ id }) => ["javeriana-guest", "research-assistant"].includes(id));
+const sharedLectureships = ["poli", "libre"].flatMap((id) => researchRoles.filter((entry) => entry.id === id));
+const researchEntries: Entry[] = researchRoles.flatMap((entry) => {
+    if (earlyXaverianRoles.length === 2 && earlyXaverianRoles.some(({ id }) => id === entry.id)) {
+        return entry.id === earlyXaverianRoles[0].id
+            ? [{ ...entry, id: "javeriana-early", period: "2010 – 2012", roles: earlyXaverianRoles }]
+            : [];
+    }
+    if (sharedLectureships.length === 2 && sharedLectureships.some(({ id }) => id === entry.id)) {
+        const firstLectureship = researchRoles.find(({ id }) => sharedLectureships.some((role) => role.id === id));
+        return entry.id === firstLectureship?.id
+            ? [{ ...entry, id: "poli-libre", department: undefined, departmentURL: undefined, affiliations: sharedLectureships }]
+            : [];
+    }
+    return [entry];
+});
 const industryEntries: Entry[] = industry.sort(recentFirst).map(({ id, data, body }) => ({
     id,
     period: period(data.duration),
@@ -69,10 +87,10 @@ const educationEntries: Entry[] = education
         location: `${data.location.city}, ${data.location.country}`,
         project: data.research?.title ?? data.thesis?.title ?? data.degreeProject?.title,
     }));
-const sections: { id: string; title: string; icon: string; entries: Entry[] }[] = [
-    { id: "academic-experience", title: "Research & academic experience", icon: "fa-flask", entries: researchEntries },
-    { id: "industry-experience", title: "Industry experience", icon: "fa-industry", entries: industryEntries },
-    { id: "education", title: "Education", icon: "fa-graduation-cap", entries: educationEntries },
+const sections: { id: string; title: string; entries: Entry[] }[] = [
+    { id: "academic-experience", title: "Research & academic experience", entries: researchEntries },
+    { id: "industry-experience", title: "Industry experience", entries: industryEntries },
+    { id: "education", title: "Education", entries: educationEntries },
 ];
 ---
 
@@ -84,12 +102,10 @@ const sections: { id: string; title: string; icon: string; entries: Entry[] }[] 
     <div class="resume-page">
         <div class="container">
             <header class="resume-intro">
-                <div class="main_title">
-                    <h1>Resume</h1>
-                </div>
-                <nav class="porfolio_menu section-links" aria-label="Resume sections">
-                    <ul class="causes_filter">
-                        <li class="active"><a href="#academic-experience" aria-current="location">Research &amp; academia <span>{research.length}</span></a></li>
+                <h1>Resume</h1>
+                <nav class="section-links" aria-label="Resume sections">
+                    <ul>
+                        <li class="active"><a href="#academic-experience" aria-current="location">Research &amp; academia <span>{researchEntries.length}</span></a></li>
                         <li><a href="#industry-experience">Industry <span>{industry.length}</span></a></li>
                         <li><a href="#education">Education <span>{education.length}</span></a></li>
                     </ul>
@@ -101,7 +117,7 @@ const sections: { id: string; title: string; icon: string; entries: Entry[] }[] 
                     <section class="career-section" id={section.id} aria-labelledby={`${section.id}-title`}>
                         <header class="career-section-heading">
                             <span class="section-number" aria-hidden="true">0{index + 1}</span>
-                            <h2 id={`${section.id}-title`}><i class={`fa-solid ${section.icon}`} aria-hidden="true"></i>{section.title}</h2>
+                            <h2 id={`${section.id}-title`}>{section.title}</h2>
                         </header>
                         <ol class="career-list">
                             {section.entries.map((entry) => (
@@ -112,10 +128,23 @@ const sections: { id: string; title: string; icon: string; entries: Entry[] }[] 
                                     </div>
                                     <article class="entry-content" aria-labelledby={`${section.id}-${entry.id}`}>
                                         <div class="entry-heading">
-                                        <h3 id={`${section.id}-${entry.id}`}>{entry.title}</h3>
-                                        <p class="entry-organization">
+                                        <h3 class:list={[{ "employer-heading": entry.roles }]} id={`${section.id}-${entry.id}`}>
+                                            {entry.roles
+                                                ? entry.organizationURL ? <a href={entry.organizationURL} target="_blank" rel="noopener noreferrer">{entry.organization}</a> : entry.organization
+                                                : entry.title}
+                                        </h3>
+                                        {entry.affiliations ? (
+                                            <ul class="entry-affiliations">
+                                                {entry.affiliations.map((affiliation) => (
+                                                    <li>
+                                                        <p class="entry-organization">{affiliation.organizationURL ? <a href={affiliation.organizationURL} target="_blank" rel="noopener noreferrer">{affiliation.organization}</a> : affiliation.organization}</p>
+                                                        {affiliation.department && <p class="affiliation-department">{affiliation.departmentURL ? <a href={affiliation.departmentURL} target="_blank" rel="noopener noreferrer">{affiliation.department}</a> : affiliation.department}</p>}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : !entry.roles && <p class="entry-organization">
                                             {entry.organizationURL ? <a href={entry.organizationURL} target="_blank" rel="noopener noreferrer">{entry.organization}</a> : entry.organization}
-                                        </p>
+                                        </p>}
                                         </div>
                                         <p class="entry-meta">
                                         {entry.department && <><span class="entry-department">
@@ -123,6 +152,14 @@ const sections: { id: string; title: string; icon: string; entries: Entry[] }[] 
                                         </span><span class="meta-separator" aria-hidden="true"> · </span></>}
                                         <span class="entry-location">{entry.location}</span>
                                         </p>
+                                        {entry.roles && <ol class="entry-roles" aria-label={`Roles at ${entry.organization}`}>
+                                            {entry.roles.map((role) => (
+                                                <li>
+                                                    <h4 id={`${section.id}-${role.id}`}>{role.title}</h4>
+                                                    <span class="role-period">{role.period}</span>
+                                                </li>
+                                            ))}
+                                        </ol>}
                                         {entry.description && <p class="entry-description">{entry.description}</p>}
                                         {entry.project && <p class="entry-project"><span>Research / degree project: </span>{entry.project}</p>}
                                     </article>
@@ -144,28 +181,39 @@ const sections: { id: string; title: string; icon: string; entries: Entry[] }[] 
     .resume-page a { color: #24486e; }
     .resume-page a:hover { text-decoration: underline; }
     .resume-page a:focus-visible { outline: 3px solid #24486e; outline-offset: 4px; }
-    .resume-intro { padding: 0 24px 20px; }
-    .section-links { margin-bottom: 0; }
-    .section-links a:hover { text-decoration: none; }
-    .section-links .causes_filter { max-width: 100%; }
-    .section-links span { margin-left: 7px; color: #687584; font-size: 11px; font-weight: 400; }
+    .resume-intro { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px 28px; padding: 30px 24px; }
+    .resume-intro h1 { font-family: "Raleway", sans-serif; font-size: 34px; font-weight: 700; line-height: 1.2; margin: 0; }
+    .section-links ul { display: flex; flex-wrap: wrap; gap: 8px 22px; }
+    .section-links a { display: inline-flex; align-items: center; gap: 7px; padding-block: 5px; font-size: 12px; font-weight: 600; border-bottom: 2px solid transparent; }
+    .section-links a:hover, .section-links a[aria-current="location"] { border-bottom-color: #526f9b; text-decoration: none; }
+    .section-links span { min-width: 20px; padding-inline: 5px; border-radius: 10px; background: #e7edf5; color: #526780; font-size: 10px; font-weight: 400; text-align: center; }
     .resume-sections { padding-top: 0; }
-    .career-section { background: #fff; margin-bottom: 16px; scroll-margin-top: 20px; }
-    .career-section-heading { display: flex; align-items: center; gap: 18px; padding: 9px 24px; background: #e7edf5; border-bottom: 1px solid #d6dce4; }
-    .section-number { font-size: 11px; color: #526f9b; letter-spacing: 1px; }
-    .career-section h2 { font-size: 21px; font-weight: 700; line-height: 1.4; margin: 0; }
-    .career-section h2 i { font-size: 16px; color: #526f9b; margin-right: 12px; }
-    .career-list { list-style: none; padding: 0 24px; margin: 0; }
-    .career-entry { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 18px; padding: 10px 10px; border-bottom: 1px solid #e1e5eb; }
+    .career-section { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 28px; margin-bottom: 28px; padding: 24px; border-top: 1px solid #d6dce4; scroll-margin-top: 20px; }
+    .career-section-heading { align-self: start; }
+    .section-number { display: block; margin-bottom: 10px; color: #8b9eb7; font-family: "Raleway", sans-serif; font-size: 38px; font-weight: 400; line-height: 1; }
+    .career-section h2 { font-family: "Raleway", sans-serif; font-size: 22px; font-weight: 700; line-height: 1.4; margin: 0; }
+    .career-section-heading::after { content: ""; display: block; width: 36px; height: 3px; margin-top: 16px; background: #7d9fd3; }
+    .career-list { list-style: none; min-width: 0; padding: 0 0 0 22px; margin: 0; border-left: 1px solid #c5cfdb; }
+    .career-entry { position: relative; display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 18px; padding: 12px 0; border-bottom: 1px solid #e1e5eb; }
+    .career-entry::before { content: ""; position: absolute; top: 20px; left: -27px; width: 9px; height: 9px; border: 2px solid #8b9eb7; border-radius: 50%; background: #f4f5f7; }
     .career-entry:last-child { border-bottom: 0; }
     .entry-period { color: #526780; font-size: 14px; font-weight: 500; line-height: 1.5; padding-top: 1px; }
-    .current-role { border-left: 3px solid #7d9fd3; padding-left: 7px; background: #f7f9fc; }
+    .current-role::before { border-color: #526f9b; background: #526f9b; }
     .current-label { display: block; color: #24486e; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 2px; }
     .entry-content { min-width: 0; }
     .entry-heading { line-height: 1.6; }
-    .entry-content h3 { display: inline; font-size: 16px; line-height: 1.5; font-weight: 700; margin: 0; }
-    .entry-organization { display: inline; color: #24486e; font-size: 14px; line-height: 1.6; font-weight: 500; }
-    .entry-organization::before { content: " · "; color: #8793a1; padding-inline: 5px; }
+    .entry-content h3 { font-size: 17px; line-height: 1.4; font-weight: 600; margin: 0; }
+    .entry-organization { color: #24486e; font-size: 14px; line-height: 1.6; font-weight: 500; margin-top: 3px; }
+    .employer-heading a { color: inherit; }
+    .entry-roles { list-style: none; margin: 10px 0 0 4px; padding: 0 0 0 16px; border-left: 1px solid #c5cfdb; }
+    .entry-roles li { position: relative; display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 12px; padding-bottom: 10px; }
+    .entry-roles li:last-child { padding-bottom: 0; }
+    .entry-roles li::before { content: ""; position: absolute; top: 7px; left: -20px; width: 7px; height: 7px; border-radius: 50%; background: #8b9eb7; }
+    .entry-roles h4 { font-size: 15px; font-weight: 600; line-height: 1.5; }
+    .role-period, .affiliation-department { color: #576575; font-size: 12px; line-height: 1.6; }
+    .affiliation-department a { color: inherit; }
+    .entry-affiliations { margin-top: 4px; }
+    .entry-affiliations li + li { margin-top: 7px; }
     .entry-meta { color: #576575; font-size: 12px; line-height: 1.6; margin-top: 3px; }
     .entry-department a { color: inherit; }
     .entry-location { color: #687584; }
@@ -175,14 +223,21 @@ const sections: { id: string; title: string; icon: string; entries: Entry[] }[] 
     .entry-project span { color: #687584; font-size: 11px; font-weight: 600; }
     .resume-end { display: flex; justify-content: flex-end; gap: 20px; padding: 0 12px 24px; }
     .resume-end a { font-size: 12px; font-weight: 700; }
+    @media (max-width: 991px) {
+        .career-section { grid-template-columns: 170px minmax(0, 1fr); gap: 24px; }
+        .career-section h2 { font-size: 20px; }
+        .career-entry { grid-template-columns: 100px minmax(0, 1fr); gap: 14px; }
+    }
     @media (max-width: 767px) {
-        .resume-intro { padding: 0 18px 16px; }
-        .section-links .causes_filter a { font-size: 14px; }
-        .career-section-heading { padding: 9px 18px; gap: 14px; }
-        .career-section h2 { font-size: 18px; }
-        .career-list { padding-inline: 18px; }
-        .career-entry { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 10px 0; }
-        .current-role { padding-left: 10px; }
+        .resume-intro { padding: 24px 18px; }
+        .resume-intro h1 { font-size: 30px; }
+        .section-links ul { gap: 6px 16px; }
+        .career-section { grid-template-columns: minmax(0, 1fr); gap: 18px; padding: 20px 18px; margin-bottom: 12px; }
+        .career-section-heading { display: grid; grid-template-columns: 42px minmax(0, 1fr); align-items: center; gap: 14px; }
+        .section-number { font-size: 30px; margin: 0; }
+        .career-section h2 { font-size: 21px; }
+        .career-section-heading::after { display: none; }
+        .career-entry { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 12px 0; }
         .entry-period { padding-top: 0; }
         .current-label { display: inline; margin: 0 12px 0 0; }
         .entry-content h3 { font-size: 16px; }

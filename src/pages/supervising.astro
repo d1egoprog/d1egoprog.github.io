@@ -2,166 +2,300 @@
 import MainLayout from "../layouts/MainLayout.astro";
 import graduateStudents from "../content/students/graduate.json";
 import undergraduateStudents from "../content/students/undergraduate.json";
-const supervisingFilters = [
-  { label: "Xaverian", value: "xaverian" },
-  { label: "Catholic", value: "catholic" },
-  { label: "Others", value: "others" },
-];
 
-const getStudentFilterGroup = (university: string) => {
-  const normalized = university.toLowerCase();
-
-  if (normalized.includes("xaverian")) return "xaverian";
-  if (normalized.includes("catholic")) return "catholic";
-  return "others";
+type GraduateDetails = {
+    summary: string;
+    areas: string[];
+    degree?: string;
+    supervisionRole?: string;
+    methods?: string[];
+    outcomes?: string[];
 };
 
+// Summaries paraphrase the supplied research titles. Add confirmed
+// degree, supervision role, methods, and outcomes here as they become available.
+const graduateDetails: Record<string, GraduateDetails> = {
+    "Paisley, Brandon": {
+        summary: "Explores natural language processing techniques for the study of early modern English manuscripts.",
+        areas: ["Natural language processing", "Digital humanities"],
+    },
+    "Poveda, Hugo": {
+        summary: "Investigates Knowledge Graph construction and GraphRAG integration to support explainable responses from large language models in international trade.",
+        areas: ["Knowledge Graphs", "GraphRAG", "Explainable AI"],
+    },
+    "Abaunza Ubaque, Orlando": {
+        summary: "Studies Retrieval-Augmented Generation within Knowledge Graphs as an approach to identifying fake news.",
+        areas: ["Knowledge Graphs", "Retrieval-Augmented Generation"],
+    },
+    "DiPaolo, Giuseppina": {
+        summary: "A prototype for assessing question answering based on Knowledge Graphs and Open Information Extraction.",
+        areas: ["Question answering", "Open Information Extraction"],
+    },
+    "Tortorella, Teresa": {
+        summary: "Investigates knowledge extraction and question answering using Linked Open Data.",
+        areas: ["Linked Open Data", "Question answering"],
+    },
+    "Rivera Sepúlveda, Vivian Natalia and Pulido Pulido, Carlos Eduardo": {
+        summary: "A data observatory prototype for monitoring education quality in Colombia, aligned with Sustainable Development Goal 4.",
+        areas: ["Data observatories", "Education", "SDG 4"],
+    },
+};
+
+const recentFirst = (a: { year: string }, b: { year: string }) => Number(b.year) - Number(a.year);
+const graduateProjects = graduateStudents.toSorted(recentFirst).map((student, index) => ({
+    ...student,
+    id: `graduate-project-${index}`,
+    details: graduateDetails[student.student],
+}));
+const undergraduateProjects = undergraduateStudents.toSorted(recentFirst);
+const undergraduateYears = [...new Set(undergraduateProjects.map(({ year }) => year))].map((year) => {
+    const projects = undergraduateProjects.filter((project) => project.year === year);
+    return {
+        year,
+        universities: [...new Set(projects.map(({ university }) => university))]
+            .sort((a, b) => a.localeCompare(b))
+            .map((university, index) => ({
+                name: university,
+                id: `undergraduate-university-${year}-${index}`,
+                projects: projects.filter((project) => project.university === university),
+            })),
+    };
+});
+const universities = [...new Set([...graduateStudents, ...undergraduateStudents].map(({ university }) => university))]
+    .sort((a, b) => a.localeCompare(b));
+const projectCount = graduateProjects.length + undergraduateProjects.length;
 ---
 
 <MainLayout
     title="Supervising"
-    description="Graduate and undergraduate students supervised by Diego Rincon-Yanez, with their research topics and university affiliations."
+    description="Graduate and undergraduate research projects supervised by Diego Rincon-Yanez, with research details and university affiliations."
     pageType="CollectionPage"
 >
-  <div class="main_container">
-    <div class="content_inner_bg">
-      <section class="container supervising_area" id="supervising">
+    <section class="supervision-page container" id="supervising" aria-labelledby="supervision-title">
         <div class="main_title">
-          <h2>Supervised Students</h2>
+            <h1 id="supervision-title">Supervision</h1>
         </div>
-        
-        
-        <div class="porfolio_menu" role="group" aria-label="Student filters">
-          <ul class="causes_filter">
-            {supervisingFilters.map((filter) => (
-              <li>
-                <button type="button" data-filter={filter.value} aria-pressed="false">
-                  {filter.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <header class="supervision-intro">
+            <div class="intro-copy">
+                <p class="intro-description">Graduate research and undergraduate projects from my supervision.</p>
+            </div>
+            <dl class="supervision-overview" aria-label="Supervision overview">
+                <div><dt>Graduate<br />projects</dt><dd>{graduateProjects.length}</dd></div>
+                <div><dt>Undergraduate<br />projects</dt><dd>{undergraduateProjects.length}</dd></div>
+            </dl>
+        </header>
 
-        <div class="col-md-12">
-          <h3>Graduate Students</h3>
-          <table class="supervising-table">
-            <thead>
-              <tr>
-                <th>Year</th>
-                <th>Name</th>
-                <th>Topic / Project</th>
-                <th>University</th>
-                <th>Resource</th>
-              </tr>
-            </thead>
-            <tbody>
-              {graduateStudents.map((student) => {
-                const filterGroup = getStudentFilterGroup(student.university);
-                return (
-                  <tr class="supervising-row" data-filter-group={filterGroup}>
-                    <td class="year">{student.year}</td>
-                    <td class="student">{student.student}</td>
-                    <td class="topic">{student.topic}</td>
-                    <td class="university">{student.university}</td>
-                    <td class="document">
-                      {student.document ? (
-                        <a href={student.document} target="_blank" rel="noopener noreferrer">
-                          <i class="fa-solid fa-book"></i>
-                        </a>
-                      ) : (
-                        <i class="fa-solid fa-spinner"></i>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+        <nav class="degree-navigation" aria-label="Supervision sections">
+            <a href="#graduate-supervision">Graduate research <span aria-hidden="true">↓</span></a>
+            <a href="#undergraduate-supervision">Undergraduate projects <span aria-hidden="true">↓</span></a>
+        </nav>
+
+        <div class="supervision-controls" hidden>
+            <div class="university-control">
+                <label for="supervision-university">University</label>
+                <select id="supervision-university">
+                    <option value="all">All universities</option>
+                    {universities.map((university) => <option value={university}>{university}</option>)}
+                </select>
+            </div>
+            <p class="filter-status" role="status" aria-live="polite" aria-atomic="true">Showing all {projectCount} projects.</p>
         </div>
 
-        <div class="col-md-12">
-          <h3>Undergraduate Students</h3>
-          <table class="supervising-table">
-            <thead>
-              <tr>
-                <th>Year</th>
-                <th>Name</th>
-                <th>Topic / Project</th>
-                <th>University</th>
-                <th>Resource</th>
-              </tr>
-            </thead>
-            <tbody>
-              {undergraduateStudents.map((student) => {
-                const filterGroup = getStudentFilterGroup(student.university);
-                return (
-                  <tr class="supervising-row" data-filter-group={filterGroup}>
-                    <td class="year">{student.year}</td>
-                    <td class="student">{student.student}</td>
-                    <td class="topic">{student.topic}</td>
-                    <td class="university">{student.university}</td>
-                    <td class="document">
-                      {student.document ? (
-                        <a href={student.document} target="_blank" rel="noopener noreferrer">
-                          <i class="fa-solid fa-book"></i>
-                        </a>
-                      ) : (
-                        <i class="fa-solid fa-spinner"></i>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </div>
-  </div>
+        <section class="supervision-group graduate-group" id="graduate-supervision" aria-labelledby="graduate-title" data-project-group>
+            <header class="group-heading">
+                <div>
+                    <h2 id="graduate-title">Graduate supervision</h2>
+                </div>
+                <span class="project-count" data-project-count>{graduateProjects.length} projects</span>
+            </header>
+            <ol class="project-list">
+                {graduateProjects.map((project) => (
+                    <li class="supervision-project" data-project data-university={project.university} aria-labelledby={project.id}>
+                        <span class="project-year">{project.year}</span>
+                        <div class="project-content">
+                            <div class="project-heading">
+                                <h3 id={project.id}>{project.student}</h3>
+                                <p class="project-university">{project.university}</p>
+                            </div>
+                            <p class="project-topic">{project.topic}</p>
+                            {project.details && <details class="project-details">
+                                <summary>Project details <i class="fa-solid fa-chevron-down" aria-hidden="true"></i></summary>
+                                <div class="project-details-body">
+                                    <p class="project-summary">{project.details.summary}</p>
+                                    {project.details.areas.length > 0 && <ul class="research-areas" aria-label="Research areas">
+                                        {project.details.areas.map((area) => <li>{area}</li>)}
+                                    </ul>}
+                                    {(project.details.degree || project.details.supervisionRole || project.details.methods?.length || project.details.outcomes?.length) ? <dl>
+                                        {project.details.degree && <div><dt>Degree</dt><dd>{project.details.degree}</dd></div>}
+                                        {project.details.supervisionRole && <div><dt>Supervision role</dt><dd>{project.details.supervisionRole}</dd></div>}
+                                        {project.details.methods?.length ? <div><dt>Methods</dt><dd><ul>{project.details.methods.map((method) => <li>{method}</li>)}</ul></dd></div> : null}
+                                        {project.details.outcomes?.length ? <div><dt>Outcomes</dt><dd><ul>{project.details.outcomes.map((outcome) => <li>{outcome}</li>)}</ul></dd></div> : null}
+                                    </dl> : null}
+                                </div>
+                            </details>}
+                        </div>
+                        <div class="project-resource">
+                            {project.document
+                                ? <a href={project.document} target="_blank" rel="noopener noreferrer" aria-label={`View resource for ${project.student} (opens in a new tab)`}>Resource <span aria-hidden="true">↗</span></a>
+                                : <span class="missing-resource">No resource linked</span>}
+                        </div>
+                    </li>
+                ))}
+            </ol>
+        </section>
 
-  <style is:global>
-    .supervising-row.is-hidden {
-      display: none;
-    }
-  </style>
-
-  <script is:inline>
-    const supervisingButtons = document.querySelectorAll('#supervising .causes_filter button[data-filter]');
-    const supervisingRows = document.querySelectorAll('.supervising-row');
-    const supervisingFilterState = new Set();
-
-    const updateSupervisingFilters = () => {
-      supervisingRows.forEach((row) => {
-        const category = row.getAttribute('data-filter-group');
-            // Show everything when no filters are selected
-        const shouldShow =
-          supervisingFilterState.size === 0 ||
-          !category ||
-          supervisingFilterState.has(category);
-        row.classList.toggle('is-hidden', !shouldShow);
-      });
-    };
-
-    supervisingButtons.forEach((button) => {
-      button.addEventListener('click', () => {
-        const filter = button.getAttribute('data-filter');
-        if (!filter) return;
-
-        if (supervisingFilterState.has(filter)) {
-          supervisingFilterState.delete(filter);
-          button.closest('li').classList.remove('active');
-          button.setAttribute('aria-pressed', 'false');
-        } else {
-          button.closest('li').classList.add('active');
-          button.setAttribute('aria-pressed', 'true');
-          supervisingFilterState.add(filter);
-        }
-
-        updateSupervisingFilters();
-      });
-    });
-
-    updateSupervisingFilters();
-  </script>
+        <section class="supervision-group undergraduate-group" id="undergraduate-supervision" aria-labelledby="undergraduate-title" data-project-group>
+            <header class="group-heading">
+                <div>
+                    <h2 id="undergraduate-title">Undergraduate supervision</h2>
+                </div>
+                <span class="project-count" data-project-count>{undergraduateProjects.length} projects</span>
+            </header>
+            <div class="undergraduate-years">
+                {undergraduateYears.map(({ year, universities }) => (
+                    <section class="undergraduate-year" data-year-group aria-labelledby={`undergraduate-year-${year}`}>
+                        <h3 id={`undergraduate-year-${year}`}>{year}</h3>
+                        <div class="year-universities">
+                            {universities.map((university) => (
+                                <section class="undergraduate-university" data-university-group aria-labelledby={university.id}>
+                                    <h4 id={university.id}>{university.name}</h4>
+                                    <ul class="undergraduate-titles">
+                                        {university.projects.map((project) => (
+                                            <li data-project data-university={project.university}>
+                                                {project.document
+                                                    ? <a href={project.document} target="_blank" rel="noopener noreferrer" aria-label={`${project.topic} (opens in a new tab)`}>{project.topic}</a>
+                                                    : <span>{project.topic}</span>}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </section>
+                            ))}
+                        </div>
+                    </section>
+                ))}
+            </div>
+        </section>
+    </section>
 </MainLayout>
+
+<style>
+    .supervision-page { color: #263749; padding-bottom: 40px; }
+    .supervision-page [hidden] { display: none !important; }
+    .supervision-page a { color: #24486e; }
+    .supervision-page a:hover { text-decoration: underline; }
+    .supervision-page :is(a, select, summary):focus-visible { outline: 2px solid #24486e; outline-offset: 4px; }
+    .supervision-intro { display: flex; justify-content: space-between; align-items: center; gap: 24px; padding: 0 24px 16px; }
+    .intro-copy { max-width: 540px; }
+    .intro-description { color: #576575; font-size: 14px; line-height: 1.5; }
+    .supervision-overview { display: flex; align-items: flex-start; gap: 24px; margin: 0; }
+    .supervision-overview > div { display: flex; flex-direction: column-reverse; max-width: 105px; }
+    .supervision-overview dt { color: #687584; font-size: 11px; font-weight: 400; line-height: 1.5; white-space: nowrap; }
+    .supervision-overview dd { color: #36567e; font-size: 24px; font-weight: 600; line-height: 1.3; margin: 0 0 3px; }
+    .degree-navigation { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 0 24px 16px; }
+    .degree-navigation a { font-size: 12px; font-weight: 700; }
+    .degree-navigation a span { margin-left: 5px; }
+    .supervision-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; padding: 10px 24px; border-top: 1px solid #d6dce4; border-bottom: 1px solid #d6dce4; }
+    .university-control { display: flex; flex-wrap: wrap; align-items: center; gap: 9px 14px; }
+    .university-control label { margin: 0; color: #526780; font-size: 12px; font-weight: 600; }
+    .university-control select { max-width: 100%; padding: 7px 34px 7px 12px; border: 1px solid #c5cfdb; border-radius: 5px; background: #fff; color: #263749; font: inherit; font-size: 12px; }
+    .filter-status { color: #687584; font-size: 11px; }
+    .supervision-group { padding: 20px 24px 0; scroll-margin-top: 20px; }
+    .group-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px 20px; margin-bottom: 10px; }
+    .group-heading h2 { font-family: "Raleway", sans-serif; font-size: 22px; font-weight: 700; line-height: 1.3; margin: 0; }
+    .project-count { flex-shrink: 0; color: #687584; font-size: 11px; line-height: 1.6; padding-bottom: 3px; }
+    .project-summary { color: #576575; font-size: 13px; line-height: 1.75; }
+    .research-areas { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
+    .research-areas li { padding: 2px 8px; border-radius: 4px; background: #e7edf5; color: #526780; font-size: 10px; line-height: 1.7; }
+    .project-details { margin-top: 3px; }
+    .project-details summary { display: flex; align-items: center; width: fit-content; gap: 8px; color: #24486e; font-size: 11px; font-weight: 600; line-height: 1.5; cursor: pointer; list-style: none; }
+    .project-details summary::-webkit-details-marker { display: none; }
+    .project-details summary i { font-size: 9px; transition: transform 150ms ease; }
+    .project-details[open] summary i { transform: rotate(180deg); }
+    .project-details-body { margin-top: 10px; padding: 14px; background: #f6f8fb; border-radius: 4px; }
+    .project-details dl { margin: 12px 0 0; }
+    .project-details dl > div + div { margin-top: 12px; }
+    .project-details dt { color: #526780; font-size: 10px; font-weight: 700; margin-bottom: 3px; }
+    .project-details dd { margin: 0; color: #425367; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+    .project-details dd ul { padding-left: 16px; list-style: disc; }
+    .project-resource a { font-size: 12px; font-weight: 700; }
+    .missing-resource { color: #687584; font-size: 11px; line-height: 1.5; }
+    .undergraduate-group { margin-top: 4px; padding-top: 14px; }
+    .undergraduate-group .group-heading { margin-bottom: 6px; }
+    .undergraduate-years { border-top: 1px solid #c5cfdb; }
+    .undergraduate-year { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 10px; padding: 6px 0; border-bottom: 1px solid #d6dce4; }
+    .undergraduate-year h3 { margin: 0; color: #526780; font-size: 15px; font-weight: 600; line-height: 1.4; }
+    .year-universities { min-width: 0; }
+    .undergraduate-university + .undergraduate-university { margin-top: 6px; }
+    .undergraduate-university h4 { margin: 0 0 2px; font-size: 13px; font-weight: 600; line-height: 1.35; }
+    .undergraduate-titles { margin: 0; padding-left: 14px; list-style: disc; }
+    .undergraduate-titles li { padding: 1px 0; color: #576575; font-size: 12px; line-height: 1.4; }
+    .undergraduate-titles a { text-decoration: underline; text-decoration-color: #b9c8db; text-underline-offset: 3px; }
+    .undergraduate-titles a:hover { text-decoration-color: currentColor; }
+    .project-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid #c5cfdb; }
+    .supervision-project { display: grid; grid-template-columns: 40px minmax(0, 1fr) 110px; align-items: baseline; gap: 6px 14px; padding: 8px 0; border-bottom: 1px solid #d6dce4; }
+    .project-year { color: #526780; font-size: 12px; font-weight: 600; }
+    .project-content { min-width: 0; }
+    .project-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 12px; }
+    .project-content h3 { font-size: 14px; font-weight: 600; line-height: 1.5; margin: 0; }
+    .project-topic { color: #576575; font-size: 12px; line-height: 1.45; }
+    .project-university { color: #687584; font-size: 11px; line-height: 1.5; }
+    .project-resource { text-align: right; }
+    @media (max-width: 991px) {
+        .supervision-intro { align-items: flex-start; }
+        .supervision-overview { gap: 16px; }
+        .supervision-overview > div { max-width: 80px; }
+    }
+    @media (max-width: 767px) {
+        .supervision-intro { flex-direction: column; gap: 14px; padding: 0 18px 14px; }
+        .intro-description { font-size: 14px; }
+        .supervision-overview { gap: 26px; }
+        .supervision-overview > div { max-width: 90px; }
+        .supervision-overview dd { font-size: 22px; }
+        .degree-navigation { padding-inline: 18px; gap: 8px 18px; }
+        .supervision-controls { padding: 10px 18px; }
+        .university-control { width: 100%; }
+        .university-control select { flex: 1; min-width: 0; }
+        .supervision-group { padding: 18px 18px 0; }
+        .group-heading { gap: 10px; }
+        .group-heading h2 { font-size: 20px; }
+        .supervision-project { grid-template-columns: 34px minmax(0, 1fr); gap: 3px 10px; padding-block: 8px; }
+        .project-resource { grid-column: 2; text-align: left; }
+        .undergraduate-group { padding-top: 12px; }
+        .undergraduate-year { grid-template-columns: 34px minmax(0, 1fr); gap: 8px; padding-block: 6px; }
+    }
+</style>
+
+<script>
+    const page = document.querySelector<HTMLElement>("#supervising");
+    if (page) {
+        const controls = page.querySelector<HTMLElement>(".supervision-controls");
+        const university = page.querySelector<HTMLSelectElement>("#supervision-university");
+        const groups = page.querySelectorAll<HTMLElement>("[data-project-group]");
+        const status = page.querySelector<HTMLElement>(".filter-status");
+        const total = page.querySelectorAll("[data-project]").length;
+
+        university?.addEventListener("change", () => {
+            let visible = 0;
+            groups.forEach((group) => {
+                let count = 0;
+                group.querySelectorAll<HTMLElement>("[data-project]").forEach((project) => {
+                    project.hidden = university.value !== "all" && project.dataset.university !== university.value;
+                    if (!project.hidden) count++;
+                });
+                group.querySelectorAll<HTMLElement>("[data-year-group], [data-university-group]").forEach((subgroup) => {
+                    subgroup.hidden = !Array.from(subgroup.querySelectorAll<HTMLElement>("[data-project]")).some((project) => !project.hidden);
+                });
+                group.hidden = count === 0;
+                const sectionLink = page.querySelector<HTMLAnchorElement>(`.degree-navigation a[href="#${group.id}"]`);
+                if (sectionLink) sectionLink.hidden = count === 0;
+                const label = group.querySelector<HTMLElement>("[data-project-count]");
+                if (label) label.textContent = `${count} ${count === 1 ? "project" : "projects"}`;
+                visible += count;
+            });
+            if (status) status.textContent = university.value === "all"
+                ? `Showing all ${total} projects.`
+                : `Showing ${visible} of ${total} projects at ${university.value}.`;
+        });
+        if (controls) controls.hidden = false;
+    }
+</script>

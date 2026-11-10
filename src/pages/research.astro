@@ -68,7 +68,7 @@ if (papers.some((paper) => paper.year === undefined)) years.push(undefined);
             {years.map((year) => (
                 <section class="publication-year" data-paper-year aria-labelledby={`year-${year ?? "undated"}`}>
                     <header class="year-heading">
-                        <h2 id={`year-${year ?? "undated"}`}>{year ?? "Undated"}</h2>
+                        <h2 id={`year-${year ?? "undated"}`}><i class="fa-solid fa-folder-open" aria-hidden="true"></i>{year ?? "Undated"}</h2>
                         <span data-year-count>{papers.filter((paper) => paper.year === year).length} {papers.filter((paper) => paper.year === year).length === 1 ? "publication" : "publications"}</span>
                     </header>
                     <div class="year-papers">
@@ -126,11 +126,13 @@ if (papers.some((paper) => paper.year === undefined)) years.push(undefined);
     .publication-filters .causes_filter li { margin: 0; }
     .publication-filters button span { color: #687584; font-size: 11px; font-weight: 400; margin-left: 7px; }
     .publication-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px; padding: 0 24px 18px; color: #687584; font-size: 12px; }
-    .publication-year { background: #fff; margin-bottom: 18px; }
-    .year-heading { display: flex; align-items: baseline; gap: 14px; padding: 10px 24px; background: #e7edf5; border-bottom: 1px solid #d6dce4; }
-    .year-heading h2 { font-size: 20px; font-weight: 700; line-height: 1.4; margin: 0; }
-    .year-heading > span { font-size: 11px; color: #687584; }
-    .year-papers { padding: 0 24px; }
+    .publication-year { margin-bottom: 18px; }
+    .year-heading { position: relative; isolation: isolate; display: flex; align-items: baseline; gap: 14px; width: fit-content; max-width: calc(100% - 20px); margin-bottom: -1px; padding: 10px 24px; background: #e7edf5; border: 1px solid #c5cfdb; border-bottom: 0; border-radius: 8px 8px 0 0; }
+    .year-heading::after { content: ""; position: absolute; z-index: -1; top: 8px; right: -12px; bottom: 0; width: 24px; background: inherit; border-top: 1px solid #c5cfdb; border-right: 1px solid #c5cfdb; border-top-right-radius: 6px; transform: skewX(25deg); }
+    .year-heading h2 { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; line-height: 1.4; margin: 0; }
+    .year-heading h2 i { color: #526780; font-size: 16px; }
+    .year-heading > span { font-size: 11px; color: #687584; white-space: nowrap; }
+    .year-papers { padding: 0 24px; background: #fff; border: 1px solid #c5cfdb; border-radius: 0 8px 8px 8px; }
     .preview-paper { padding: 17px 0; border-bottom: 1px solid #e1e5eb; }
     .preview-paper:last-child { border-bottom: 0; }
     .preview-paper h3 { font-size: 16px; font-weight: 700; line-height: 1.5; margin: 0 0 5px; }
