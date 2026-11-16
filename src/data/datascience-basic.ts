@@ -1,4 +1,4 @@
-export type ResourceCategory = "slides" | "datasets" | "code" | "readings";
+export type ResourceCategory = "slides" | "datasets" | "code";
 
 export interface CourseResource {
     id: string;
@@ -13,7 +13,7 @@ export interface CourseResource {
 }
 
 // Adapted from sandbox/bigdata-icetex.html and the local PhD.DataScience.Basic
-// slide decks and course guide. Source files remain in their original folders.
+// slide decks. Source files remain in their original folders.
 export const courseModules = [
     {
         number: "00",
@@ -63,10 +63,9 @@ export const courseModules = [
 ];
 
 export const resourceCategories: { id: ResourceCategory; label: string }[] = [
-    { id: "slides", label: "Slides & course guide" },
+    { id: "slides", label: "Slides" },
+    { id: "code", label: "Python code & practice" },
     { id: "datasets", label: "Datasets & file examples" },
-    { id: "code", label: "Code & practice" },
-    { id: "readings", label: "Readings" },
 ];
 
 export const courseResources: CourseResource[] = [
@@ -99,11 +98,6 @@ export const courseResources: CourseResource[] = [
         id: "slides-practice", title: "Python + NLP hands-on practice", category: "slides", format: "PPTX",
         description: "The practice deck covering pandas, NLTK, word frequencies, and visualization.",
         filename: "[Py+NLP]Practice 1.pptx", origin: "PhD course", href: null,
-    },
-    {
-        id: "course-guide", title: "Gestión de Datos course guide", category: "slides", format: "DOCX",
-        description: "The supporting course syllabus: data management, cleaning, organization, visualization, and research ethics.",
-        filename: "670492_GESTION DE DATOS.docx", origin: "PhD course", href: null,
     },
     {
         id: "dataset-csv", title: "Comma-separated values", category: "datasets", format: "CSV",
@@ -141,6 +135,16 @@ export const courseResources: CourseResource[] = [
         filename: "satelite-1024x1024-Colombia.bz2", origin: "Big Data course", href: null,
     },
     {
+        id: "code-kmeans", title: "K-means clustering notebook", category: "code", format: "IPYNB",
+        description: "A Python notebook on grouping observations with K-means and interpreting the resulting clusters.",
+        origin: "PhD course", href: null,
+    },
+    {
+        id: "code-decision-trees", title: "Decision trees notebook", category: "code", format: "IPYNB",
+        description: "A Python notebook on building, evaluating, and interpreting decision-tree models.",
+        origin: "PhD course", href: null,
+    },
+    {
         id: "code-extraction", title: "Web text extraction", category: "code", format: "PYTHON",
         description: "The Don Quijote extraction example for discussing how raw text enters an analysis workflow.",
         filename: "GetQuijote.py", origin: "Big Data course", href: null,
@@ -149,25 +153,5 @@ export const courseResources: CourseResource[] = [
         id: "code-nlp", title: "NLP and basic visualization", category: "code", format: "PYTHON / ZIP",
         description: "The earlier text analysis practice, to accompany the new course's DSV-to-chart exercise.",
         filename: "test-NLP-python.zip", origin: "Big Data course", href: null,
-    },
-    {
-        id: "code-pdf", title: "PDF text extraction", category: "code", format: "JAVA / ZIP",
-        description: "Optional extension: an earlier extraction example for discussing text stored in documents.",
-        filename: "test-pdf-extraction.zip", origin: "Big Data course", href: null,
-    },
-    {
-        id: "reading-big", title: "How Big Is Big Data", category: "readings", format: "PDF",
-        description: "A reading from the earlier course to support the discussion of data scale.",
-        origin: "Big Data course", href: null,
-    },
-    {
-        id: "reading-demystifying", title: "Demystifying Big Data", category: "readings", format: "PDF",
-        description: "Background reading from the earlier course on the ideas behind Big Data.",
-        origin: "Big Data course", href: null,
-    },
-    {
-        id: "reading-reproducibility", title: "Reproducible research", category: "readings", format: "ARTICLE",
-        description: "A reserved reading on documenting data, methods, and analysis so others can understand and repeat the work.",
-        origin: "Big Data course", href: null,
     },
 ];
